@@ -38,7 +38,8 @@ export const DecisionsView: React.FC<DecisionsViewProps> = ({
   const isOverMachineCapacity = totalProduction > machineCapacity;
 
   const currentSnapshot = allSnapshots[currentPeriod];
-  const firmCurrent = currentSnapshot?.firmsResults[selectedFirmId] || currentSnapshot?.firmsResults['1'] || Object.values(currentSnapshot?.firmsResults || {})[0];
+  const userFirmId = '1';
+  const firmCurrent = currentSnapshot?.firmsResults[userFirmId] || currentSnapshot?.firmsResults['1'] || Object.values(currentSnapshot?.firmsResults || {})[0];
   const rawStock = firmCurrent?.productionReport.rawMaterials.finalStock || 0;
   const neededMP = (pendingDecisions.productionA || 0) * 3.0 + (pendingDecisions.productionB || 0) * 4.0;
   const availableMP = rawStock + (pendingDecisions.rawMaterialOrder || 0);
@@ -85,7 +86,10 @@ export const DecisionsView: React.FC<DecisionsViewProps> = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2 font-display">
-            <span>Feuille de Décisions Stratégiques · Firme {selectedFirmId}</span>
+            <span>Feuille de Décisions Stratégiques · {companySettings?.companyName || 'AeroPulse Tech'}</span>
+            <span className="text-xs bg-indigo-950 text-indigo-300 border border-indigo-700 px-2 py-0.5 rounded font-mono font-bold">
+              Votre Entreprise
+            </span>
             <span className="text-xs bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold">
               Période {nextPeriod} en arbitrage
             </span>

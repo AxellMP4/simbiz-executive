@@ -10,6 +10,7 @@ interface StockTickerProps {
   selectedFirmId: string;
   onSelectFirm?: (firmId: string) => void;
   onOpenVolatilityModal?: () => void;
+  onSelectCompetitor?: (firmId: string) => void;
 }
 
 interface TickerItem {
@@ -31,6 +32,7 @@ export const StockTicker: React.FC<StockTickerProps> = ({
   selectedFirmId,
   onSelectFirm,
   onOpenVolatilityModal,
+  onSelectCompetitor,
 }) => {
   const currency = companySettings?.currency || '€';
 
@@ -176,7 +178,15 @@ export const StockTicker: React.FC<StockTickerProps> = ({
                   <div
                     key={`${iteration}-${ticker.id}`}
                     onClick={() => {
-                      if (onSelectFirm) onSelectFirm(ticker.id);
+                      if (ticker.id === '1') {
+                        if (onSelectFirm) onSelectFirm('1');
+                      } else {
+                        if (onSelectCompetitor) {
+                          onSelectCompetitor(ticker.id);
+                        } else if (onSelectFirm) {
+                          onSelectFirm(ticker.id);
+                        }
+                      }
                     }}
                     className={`flex items-center gap-2 px-2.5 py-0.5 rounded transition-all cursor-pointer ${
                       isSelected
@@ -187,7 +197,7 @@ export const StockTicker: React.FC<StockTickerProps> = ({
                         ? 'border border-amber-500/40 bg-amber-950/20'
                         : ''
                     }`}
-                    title={`${ticker.name} - Cours: ${livePrice.toFixed(2)} ${currency} (${pctDiff >= 0 ? '+' : ''}${pctDiff.toFixed(1)}%)${isVolatile ? ' - HAUTE VOLATILITÉ (>15%)' : ''}`}
+                    title={`${ticker.name} - Cours: ${livePrice.toFixed(2)} ${currency} (${pctDiff >= 0 ? '+' : ''}${pctDiff.toFixed(1)}%)${ticker.isUser ? ' · Votre Entreprise' : ' · Cliquez pour ouvrir le dossier concurrent'}${isVolatile ? ' - HAUTE VOLATILITÉ (>15%)' : ''}`}
                   >
                     {/* Ticker Symbol & Badge */}
                     <div className="flex items-center gap-1.5">

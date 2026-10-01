@@ -35,12 +35,12 @@ export const NeonExecutiveCharts: React.FC<NeonExecutiveChartsProps> = ({
     .sort((a, b) => a - b);
 
   const activeSnapshot = snapshots[currentPeriod] || snapshots[0];
-  const userResult = activeSnapshot?.firmsResults[selectedFirmId] || activeSnapshot?.firmsResults['1'];
+  const userResult = activeSnapshot?.firmsResults['1'] || Object.values(activeSnapshot?.firmsResults || {})[0];
 
   // 1. Data for financial evolution
   const financialData = periodNums.map(p => {
     const snap = snapshots[p];
-    const res = snap?.firmsResults[selectedFirmId] || snap?.firmsResults['1'];
+    const res = snap?.firmsResults['1'] || Object.values(snap?.firmsResults || {})[0];
     return {
       period: p,
       revenue: res?.incomeStatement.revenue || 0,

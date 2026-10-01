@@ -22,7 +22,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
   onImportState,
   allSnapshots,
 }) => {
-  const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
+  const firmResult = snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
 
   // Break-even calculator states calibrated for realistic scale
   const [fixedCosts, setFixedCosts] = useState<number>(320000);
@@ -55,7 +55,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
     const rows = Object.values(allSnapshots || { [snapshot.period]: snapshot })
       .sort((a, b) => a.period - b.period)
       .map(periodSnapshot => {
-        const result = periodSnapshot.firmsResults[selectedFirmId] || periodSnapshot.firmsResults['1'] || Object.values(periodSnapshot.firmsResults)[0];
+        const result = periodSnapshot.firmsResults['1'] || Object.values(periodSnapshot.firmsResults)[0];
         return {
           periode: periodSnapshot.period,
           chiffre_affaires: result?.incomeStatement.revenue || 0,

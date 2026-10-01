@@ -44,6 +44,7 @@ import { GuidedTourView } from './components/views/guided/GuidedTourView';
 import { MobileNavDock } from './components/layout/MobileNavDock';
 import { FinancialMarketView } from './components/views/FinancialMarketView';
 import { createFinancialMarketState, evolveFinancialMarket, FinancialMarketState, executeOrder, instrumentsFromSnapshot } from './domain/financialMarket';
+import { OnboardingTutorialModal } from './components/ui/OnboardingTutorialModal';
 
 const STORAGE_KEY = 'simbiz_executive_simulation_p0_v5';
 
@@ -132,6 +133,13 @@ export default function App() {
   });
 
   const [isCustomizationOpen, setIsCustomizationOpen] = useState<boolean>(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('simbiz_tutorial_dismissed') !== 'true';
+    } catch (e) {
+      return true;
+    }
+  });
   const [confirmResetOpen, setConfirmResetOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'warning' | 'info' } | null>(null);
   const [syncState, setSyncState] = useState<SyncState>('local');
@@ -332,7 +340,7 @@ export default function App() {
     if (activeCrisis && activeCrisis.chosenOptionId) {
       const choice = activeCrisis.choices.find(c => c.id === activeCrisis.chosenOptionId);
       if (choice) {
-        const firmRes = nextSnapshot.firmsResults[selectedFirmId];
+        const firmRes = nextSnapshot.firmsResults['1'];
         if (firmRes) {
           firmRes.balanceSheet.assets.cashAndEquivalents += choice.cashImpact;
           firmRes.incomeStatement.netProfit += choice.profitImpact;
@@ -354,7 +362,7 @@ export default function App() {
     setMessages(prev => [...newMessages, ...prev]);
 
     // Setup base decisions for NEXT period
-    const playerResult = nextSnapshot.firmsResults[selectedFirmId] || nextSnapshot.firmsResults['1'];
+    const playerResult = nextSnapshot.firmsResults['1'];
     setPendingDecisions(prev => ({
       ...prev,
       period: newPeriodNum + 1,
@@ -426,7 +434,7 @@ export default function App() {
     if (!pat || pat.unlocked) return;
 
     const snap = snapshots[currentPeriod];
-    const firm = snap?.firmsResults[selectedFirmId];
+    const firm = snap?.firmsResults['1'];
     if (!firm || firm.balanceSheet.assets.cashAndEquivalents < pat.rdCost) {
       showToast(
         "Trésorerie Insuffisante",
@@ -455,7 +463,7 @@ export default function App() {
     if (!obj || obj.completed) return;
 
     const snap = snapshots[currentPeriod];
-    const firm = snap?.firmsResults[selectedFirmId];
+    const firm = snap?.firmsResults['1'];
     if (!firm) return;
 
     firm.balanceSheet.assets.cashAndEquivalents += obj.rewardCash;
@@ -597,6 +605,7 @@ export default function App() {
           onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
           isGuidedMode={currentTab === 'guidedTour'}
           onToggleGuidedMode={() => setCurrentTab(currentTab === 'guidedTour' ? 'recap' : 'guidedTour')}
+          onOpenTutorial={() => setIsTutorialOpen(true)}
         />
 
         {/* View Router */}
@@ -652,6 +661,7 @@ export default function App() {
               onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
               marketState={financialMarketState}
               onExecuteTrade={handleExecuteTrade}
+              onOpenTutorial={() => setIsTutorialOpen(true)}
             />
           )}
 

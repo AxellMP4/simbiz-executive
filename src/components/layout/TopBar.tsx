@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, Flame, Zap, Maximize2, Minimize2, Compass } from 'lucide-react';
+import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, Flame, Zap, Maximize2, Minimize2, Compass, GraduationCap } from 'lucide-react';
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { StockTicker } from '../ui/StockTicker';
 import { VolatilityModal } from '../ui/VolatilityModal';
@@ -19,6 +19,7 @@ interface TopBarProps {
   companySettings?: CompanySettings;
   onOpenCustomization?: () => void;
   onSelectFirm?: (firmId: string) => void;
+  onSelectCompetitor?: (firmId: string) => void;
   advisorRecommendations: AdvisorRecommendation[];
   advisorOpen: boolean;
   onToggleAdvisor: () => void;
@@ -26,6 +27,7 @@ interface TopBarProps {
   onDismissAdvisor: (id: string) => void;
   isGuidedMode?: boolean;
   onToggleGuidedMode?: () => void;
+  onOpenTutorial?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -41,6 +43,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   companySettings,
   onOpenCustomization,
   onSelectFirm,
+  onSelectCompetitor,
   advisorRecommendations,
   advisorOpen,
   onToggleAdvisor,
@@ -48,6 +51,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onDismissAdvisor,
   isGuidedMode = true,
   onToggleGuidedMode,
+  onOpenTutorial,
 }) => {
   const [isVolatilityModalOpen, setIsVolatilityModalOpen] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -66,8 +70,10 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
-  const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
-  const prevFirmResult = prevSnapshot?.firmsResults[selectedFirmId] || prevSnapshot?.firmsResults['1'];
+  // The player's enterprise is ALWAYS firm '1'
+  const userFirmId = '1';
+  const firmResult = snapshot.firmsResults[userFirmId] || Object.values(snapshot.firmsResults)[0];
+  const prevFirmResult = prevSnapshot?.firmsResults[userFirmId];
 
   const netProfit = firmResult?.incomeStatement.netProfit || 0;
   const revenue = firmResult?.incomeStatement.revenue || 0;
@@ -78,8 +84,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   const esgScore = firmResult?.balanceSheet.ratios.esgScore || 70;
   const currency = companySettings?.currency || '€';
 
-  // Calculate selected firm price change between periods
-  const pctChange = quoteChangePercent(snapshot, prevSnapshot, selectedFirmId);
+  // Calculate user firm price change between periods
+  const pctChange = quoteChangePercent(snapshot, prevSnapshot, userFirmId);
   const isSelectedFirmVolatile = Math.abs(pctChange) >= 15.0;
 
   // Check if ANY firm in the benchmark is volatile
@@ -137,8 +143,26 @@ export const TopBar: React.FC<TopBarProps> = ({
           </div>
         </div>
 
-        {/* Zone 2: Real-time Corporate KPIs for Selected Firm */}
-        <div className="hidden lg:flex items-center gap-4 text-xs font-mono">
+        {/* Zone 2: Real-time Corporate KPIs for User Firm */}
+        <div className="hidden lg:flex items-center gap-3.5 text-xs font-mono">
+          {/* Identity Tag */}
+          <div className="flex items-center gap-2 pl-2 pr-2.5 py-1 bg-slate-950/80 border border-slate-800 rounded-lg shrink-0">
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+              style={{ backgroundColor: companySettings?.brandColor || '#6366f1' }}
+            />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-bold text-white text-xs truncate max-w-[120px]">
+                {companySettings?.companyName || 'AeroPulse'}
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-tech font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 uppercase">
+                Vous (F1)
+              </span>
+            </div>
+          </div>
+
+          <div className="w-px h-4 bg-slate-800" />
+
           <div>
             <span className="text-slate-400 mr-1.5 text-[11px]">Chiffre d'Affaires</span>
             <span className="font-semibold text-slate-100">
@@ -254,6 +278,17 @@ export const TopBar: React.FC<TopBarProps> = ({
             </button>
           )}
 
+          {onOpenTutorial && (
+            <button
+              onClick={onOpenTutorial}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-xs font-display font-bold text-indigo-300 transition-all shadow-xs no-print cursor-pointer"
+              title="Ouvrir le Grand Guide d'Intégration du Nouveau Dirigeant (Mois 1)"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">Guide Mois 1</span>
+            </button>
+          )}
+
           <button
             onClick={toggleFullscreen}
             className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors no-print cursor-pointer"
@@ -295,6 +330,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         companySettings={companySettings}
         selectedFirmId={selectedFirmId}
         onSelectFirm={onSelectFirm}
+        onSelectCompetitor={onSelectCompetitor}
         onOpenVolatilityModal={() => setIsVolatilityModalOpen(true)}
       />
 
@@ -307,7 +343,11 @@ export const TopBar: React.FC<TopBarProps> = ({
         companySettings={companySettings}
         selectedFirmId={selectedFirmId}
         onSelectFirm={(fid) => {
-          if (onSelectFirm) onSelectFirm(fid);
+          if (fid !== '1' && onSelectCompetitor) {
+            onSelectCompetitor(fid);
+          } else if (onSelectFirm) {
+            onSelectFirm(fid);
+          }
           setIsVolatilityModalOpen(false);
         }}
       />

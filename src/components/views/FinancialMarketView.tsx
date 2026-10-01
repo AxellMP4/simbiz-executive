@@ -127,7 +127,7 @@ export const FinancialMarketView: React.FC<FinancialMarketViewProps> = ({
               const positive = instrument.changePercent >= 0;
               const max = Math.max(...instrument.history);
               return (
-                <button key={instrument.firmId} className={`market-quote-row ${selectedFirmId === instrument.firmId ? 'is-selected' : ''}`} onClick={() => { setSelectedFirmId(instrument.firmId); onSelectFirm(instrument.firmId); }}>
+                <button key={instrument.firmId} className={`market-quote-row ${selectedFirmId === instrument.firmId ? 'is-selected' : ''}`} onClick={() => { setSelectedFirmId(instrument.firmId); }}>
                   <span className="market-quote-name"><strong>{instrument.symbol}</strong><small>{instrument.name} · {instrument.sector}</small></span>
                   <span className="market-sparkline" aria-label={`Historique ${instrument.symbol}`}>{instrument.history.map((point, i) => <i key={i} style={{ height: `${Math.max(18, point / max * 100)}%` }} />)}</span>
                   <span className="market-quote-price">{instrument.price.toFixed(2)} €<small>{instrument.volume.toLocaleString('fr-FR')} titres</small></span>

@@ -27,8 +27,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 }) => {
   const currentPeriod = snapshot.period;
   const currency = companySettings?.currency || '€';
-  const myFirm = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
-  const prevFirm = prevSnapshot?.firmsResults[selectedFirmId] || prevSnapshot?.firmsResults['1'];
+  const myFirm = snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
+  const prevFirm = prevSnapshot?.firmsResults['1'];
   const { incomeStatement, productionReport, balanceSheet, cashFlow } = myFirm;
 
   const currentPrice = balanceSheet.ratios.sharePrice || 50;
@@ -47,7 +47,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // 1. P&L Charts
   const pnlSalesData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['1'] || Object.values(s.firmsResults)[0];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     const avgSales =
       s.competitorsBenchmark.reduce((acc, c) => acc + c.salesRevenue, 0) /
       s.competitorsBenchmark.length;
@@ -60,7 +60,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const pnlMarginData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['1'] || Object.values(s.firmsResults)[0];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     const marginPct = (firm.incomeStatement.grossMargin / Math.max(1, firm.incomeStatement.revenue)) * 100;
     const avgMarginPct = 22.5; // Benchmark market average
     return {
@@ -72,7 +72,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const pnlProfitData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['1'] || Object.values(s.firmsResults)[0];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     const avgProfit =
       s.competitorsBenchmark.reduce((acc, c) => acc + c.netProfit, 0) /
       s.competitorsBenchmark.length;
@@ -86,7 +86,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // 2. Production Charts
   const prodRawMaterialData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.productionReport.rawMaterials.finalStock,
@@ -96,7 +96,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const prodUnitCostData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.productionReport.productA.unitProductionCost,
@@ -106,7 +106,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const prodStocksFinishedData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       v1: firm.productionReport.productA.finalStockUnits,
@@ -117,7 +117,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // 3. Balance Sheet Charts
   const balanceBFRData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.balanceSheet.ratios.bfr,
@@ -127,7 +127,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const balanceROAData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.balanceSheet.ratios.roa,
@@ -137,7 +137,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const balanceROEData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.balanceSheet.ratios.roe,
@@ -148,7 +148,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // 4. Cash Flow Charts
   const cashFlowInOutData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       v1: firm.cashFlow.receipts.totalReceipts,
@@ -158,7 +158,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const cashFlowBalanceData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       value: firm.cashFlow.closingCash,
@@ -168,7 +168,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const cashFlowBorrowingData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       v1: firm.cashFlow.borrowingCapacityST,
@@ -179,7 +179,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   // 5. Competitor Charts
   const compVolumeSalesData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       v1: firm.productionReport.productA.salesLocalUnits + firm.productionReport.productA.salesExportUnits,
@@ -189,7 +189,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
   const compExportSalesData = periodsRange.map(p => {
     const s = allSnapshots[p];
-    const firm = s.firmsResults[selectedFirmId] || s.firmsResults['5'];
+    const firm = s.firmsResults['1'] || Object.values(s.firmsResults)[0];
     return {
       label: `P${p}`,
       v1: firm.productionReport.productA.salesExportUnits,

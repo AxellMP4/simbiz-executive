@@ -7,6 +7,7 @@ interface Props {
   onClose: () => void;
   snapshot: PeriodSnapshot;
   companySettings: CompanySettings;
+  initialFirmId?: string;
 }
 
 interface CompetitorDossier {
@@ -78,8 +79,15 @@ export const CompetitorIntelligenceModal: React.FC<Props> = ({
   onClose,
   snapshot,
   companySettings,
+  initialFirmId,
 }) => {
-  const [selectedFirmId, setSelectedFirmId] = useState<string>('2');
+  const [selectedFirmId, setSelectedFirmId] = useState<string>(initialFirmId || '2');
+
+  React.useEffect(() => {
+    if (initialFirmId && initialFirmId !== '1') {
+      setSelectedFirmId(initialFirmId);
+    }
+  }, [initialFirmId]);
 
   if (!isOpen) return null;
 

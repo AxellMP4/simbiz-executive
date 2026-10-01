@@ -44,7 +44,7 @@ export const BoardAndRndView: React.FC<BoardAndRndViewProps> = ({
   onUnlockPatent,
   onClaimObjectiveReward,
 }) => {
-  const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
+  const firmResult = snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
   const { incomeStatement, balanceSheet, hrReport } = firmResult;
   const netProfit = incomeStatement.netProfit;
   const revenue = incomeStatement.revenue;
