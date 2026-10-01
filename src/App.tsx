@@ -21,9 +21,11 @@ import {
   TECH_PATENTS
 } from './data/customizationData';
 import { simulateNextPeriod } from './engine/simulationEngine';
+import { commitPeriod, createPreview, DecisionEvent, PeriodStatus, validateDecisions } from './domain/simulationLifecycle';
 import { Sidebar, MainViewTab, ResultsSubTab } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
 import { RecapView } from './components/views/RecapView';
+import { ExecutiveCockpitView } from './components/views/ExecutiveCockpitView';
 import { ResultsView } from './components/views/ResultsView';
 import { DecisionsView } from './components/views/DecisionsView';
 import { HRManagementView } from './components/views/HRManagementView';
@@ -129,6 +131,9 @@ export default function App() {
   const [syncState, setSyncState] = useState<SyncState>('local');
   const [gameCode, setGameCodeState] = useState(() => getGameCode());
   const [syncReady, setSyncReady] = useState(false);
+  const [previewResult, setPreviewResult] = useState<import('./types/simulation').FirmPeriodResult | undefined>();
+  const [periodStatus, setPeriodStatus] = useState<PeriodStatus>('draft');
+  const [events, setEvents] = useState<DecisionEvent[]>([]);
 
   const showToast = (title: string, message: string, type: 'success' | 'warning' | 'info' = 'info') => {
     setToast({ title, message, type });
@@ -186,12 +191,14 @@ export default function App() {
           objectives,
           crises,
           techPatents,
+          events,
+          periodStatus,
         })
       );
     } catch (e) {
       console.error('Failed to save simulation to localStorage:', e);
     }
-  }, [snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents]);
+  }, [snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus]);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,8 +247,38 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [syncReady, gameCode, snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages]);
 
+  const validation = validateDecisions(
+    pendingDecisions,
+    snapshots[latestPeriod]?.firmsResults[selectedFirmId] || snapshots[latestPeriod]?.firmsResults['1'],
+  );
+
+  const addEvent = (type: DecisionEvent['type'], period: number, message: string) => {
+    setEvents(prev => [{ id: `${type}-${period}-${Date.now()}`, type, period, at: new Date().toISOString(), message }, ...prev].slice(0, 50));
+  };
+
+  const handlePreview = () => {
+    if (validation.some(issue => issue.severity === 'error')) {
+      showToast('Prévisualisation bloquée', 'Corrigez les contraintes bloquantes avant de lancer le scénario.', 'warning');
+      return;
+    }
+    const activeSnap = snapshots[latestPeriod];
+    if (!activeSnap) return;
+    try {
+      const next = createPreview(activeSnap, pendingDecisions);
+      setPreviewResult(next);
+      setPeriodStatus('preview');
+      addEvent('preview_generated', next.period, `Prévision P.${next.period} générée sans modifier les résultats officiels.`);
+    } catch (error) {
+      showToast('Prévisualisation indisponible', error instanceof Error ? error.message : 'Le moteur n’a pas pu calculer le scénario.', 'warning');
+    }
+  };
+
   // Execute simulation turn
   const handleSimulateNextPeriod = () => {
+    if (validation.some(issue => issue.severity === 'error')) {
+      showToast('Clôture bloquée', 'Corrigez les contraintes bloquantes avant de clôturer la période.', 'warning');
+      return;
+    }
     const activeSnap = snapshots[latestPeriod];
     if (!activeSnap) return;
 
@@ -274,12 +311,13 @@ export default function App() {
       }
     }
 
-    setSnapshots(prev => ({
-      ...prev,
-      [newPeriodNum]: nextSnapshot,
-    }));
+    setSnapshots(prev => commitPeriod(prev, nextSnapshot));
     setLatestPeriod(newPeriodNum);
     setCurrentPeriod(newPeriodNum);
+    setPreviewResult(undefined);
+    addEvent('period_validated', newPeriodNum, `Décisions P.${newPeriodNum} validées : contraintes contrôlées avant clôture.`);
+    setPeriodStatus('closed');
+    addEvent('period_closed', newPeriodNum, `Période ${newPeriodNum} clôturée et enregistrée de façon idempotente.`);
     setMessages(prev => [...newMessages, ...prev]);
 
     // Setup base decisions for NEXT period
@@ -412,6 +450,9 @@ export default function App() {
     setObjectives(INITIAL_OBJECTIVES);
     setTechPatents(TECH_PATENTS);
     setCurrentTab('recap');
+    setPreviewResult(undefined);
+    setPeriodStatus('draft');
+    setEvents([{ id: 'period-opened-0', type: 'period_opened', period: 0, at: new Date().toISOString(), message: 'Simulation initialisée sur la période 0.' }]);
     setConfirmResetOpen(false);
     showToast("Simulation Réinitialisée", "Retour à la Période 0 (P0) effectué avec succès.", "info");
   };
@@ -422,6 +463,35 @@ export default function App() {
 
   const handleMarkAllAsRead = () => {
     setMessages(prev => prev.map(m => ({ ...m, read: true })));
+  };
+
+  const handleExportState = () => {
+    const state = { snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus };
+    const anchor = document.createElement('a');
+    anchor.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(state, null, 2))}`;
+    anchor.download = `simbiz-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+  };
+
+  const handleImportState = async (file: File) => {
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed.snapshots || !parsed.pendingDecisions || typeof parsed.currentPeriod !== 'number') throw new Error('Format de sauvegarde invalide.');
+      setSnapshots(parsed.snapshots);
+      setPendingDecisions(parsed.pendingDecisions);
+      setMessages(parsed.messages || []);
+      setLatestPeriod(parsed.latestPeriod ?? parsed.currentPeriod);
+      setCurrentPeriod(parsed.currentPeriod);
+      if (parsed.companySettings) setCompanySettings(parsed.companySettings);
+      if (parsed.objectives) setObjectives(parsed.objectives);
+      if (parsed.crises) setCrises(parsed.crises);
+      if (parsed.techPatents) setTechPatents(parsed.techPatents);
+      setEvents(parsed.events || []);
+      setPeriodStatus(parsed.periodStatus || 'draft');
+      showToast('Sauvegarde restaurée', 'L’état complet de la simulation a été importé.', 'success');
+    } catch (error) {
+      showToast('Import impossible', error instanceof Error ? error.message : 'Fichier JSON illisible.', 'warning');
+    }
   };
 
   const availablePeriods = Object.keys(snapshots)
@@ -467,6 +537,20 @@ export default function App() {
         {/* View Router */}
         <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950">
           {currentTab === 'recap' && (
+            <ExecutiveCockpitView
+              snapshot={activeSnapshot}
+              previous={prevSnapshot}
+              companySettings={companySettings}
+              pendingDecisions={pendingDecisions}
+              periodStatus={periodStatus}
+              events={events}
+              validation={validation}
+              onDecisions={() => setCurrentTab('decisions')}
+              onPreview={handlePreview}
+            />
+          )}
+
+          {currentTab === 'legacyRecap' && (
             <RecapView
               snapshot={activeSnapshot}
               prevSnapshot={prevSnapshot}
@@ -548,6 +632,8 @@ export default function App() {
               snapshot={activeSnapshot}
               selectedFirmId={selectedFirmId}
               onResetToP0={() => setConfirmResetOpen(true)}
+              onExportState={handleExportState}
+              onImportState={handleImportState}
             />
           )}
 

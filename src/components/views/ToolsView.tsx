@@ -7,6 +7,8 @@ interface ToolsViewProps {
   onResetToP0?: () => void;
   onFastForwardToP6?: () => void;
   selectedFirmId: string;
+  onExportState?: () => void;
+  onImportState?: (file: File) => void;
 }
 
 export const ToolsView: React.FC<ToolsViewProps> = ({
@@ -14,6 +16,8 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
   onResetToP0,
   onFastForwardToP6,
   selectedFirmId,
+  onExportState,
+  onImportState,
 }) => {
   const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
 
@@ -58,6 +62,20 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3 lg:col-span-2">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-200 border-b border-slate-800 pb-2">
+            <Download className="w-4 h-4 text-indigo-400" />
+            <span>Sauvegarde complète de la simulation</span>
+          </div>
+          <p className="text-xs text-slate-400">Exportez ou restaurez les décisions, résultats, objectifs, messages et journal d’activité. Le fichier ne contient aucun secret.</p>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={onExportState} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">Exporter l’état JSON</button>
+            <label className="cursor-pointer rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
+              Importer un état JSON
+              <input type="file" accept="application/json" className="sr-only" onChange={e => e.target.files?.[0] && onImportState?.(e.target.files[0])} />
+            </label>
+          </div>
+        </div>
         {/* Tool 1: Seuil de Rentabilité (Break-even Point) */}
         <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-200 border-b border-slate-800 pb-2">

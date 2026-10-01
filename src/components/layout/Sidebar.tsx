@@ -27,6 +27,7 @@ import { CompanySettings } from '../../types/simulation';
 
 export type MainViewTab =
   | 'recap'
+  | 'legacyRecap'
   | 'results'
   | 'hr'
   | 'market'

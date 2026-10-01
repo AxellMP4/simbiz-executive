@@ -29,6 +29,28 @@ L'API partagée expose `GET /api/health`, `POST /api/games`, `GET /api/games/:co
 
 Le client crée un identifiant d'appareil et un code de partie invité à 8 caractères, puis synchronise automatiquement l'état. Le code est un lien de reprise pratique, pas une authentification sécurisée : ne pas y stocker de données personnelles. En cas de réseau absent, l'état continue de fonctionner dans `localStorage` et le badge indique « Hors ligne ».
 
+## Guide de pilotage
+
+Le **Cockpit exécutif** est la page d'accueil : les indicateurs distinguent les résultats réalisés de la période clôturée et les décisions à venir. Depuis **Feuille de décisions**, saisissez les leviers commerce, production, achats, RH et finance, puis utilisez la prévisualisation. Elle appelle le même moteur déterministe que la clôture, sans modifier les résultats officiels. Les contraintes bloquantes (capacité, financement, bornes de décision) doivent être corrigées avant validation.
+
+Le cycle d'une période est : **Brouillon → Prévisualisation → Validée → Clôturée**. Une clôture est idempotente : un même numéro de période ne remplace jamais un résultat déjà enregistré. Le journal d'activité conserve les prévisualisations et clôtures dans la sauvegarde locale.
+
+### Glossaire et hypothèses
+
+- **Réalisé** : résultat calculé et enregistré dans `PeriodSnapshot`.
+- **Prévision** : résultat calculé à partir des décisions courantes, non persistant tant que la période n'est pas clôturée.
+- **Marge brute** : chiffre d'affaires moins coût des ventes.
+- Les prix, volumes, capacité, stocks, délais clients, coût matière et financement sont déterministes à partir de la période et des décisions. Le moteur applique les contraintes de matière et de capacité par réduction explicable de la production.
+
+Les rapports existants restent accessibles depuis **États financiers**. L'impression navigateur fournit un PDF partageable à court terme; **Calculateurs & Outils** permet maintenant l'export et la restauration JSON de l'état complet. L'export CSV et les rapports PDF natifs restent à compléter.
+
+## Phases implémentées et limites connues
+
+- **P0** : audit (`AUDIT.md`), modèle canonique existant consolidé, cockpit, navigation actuelle préservée.
+- **P1** : cycle brouillon/prévision/clôture, validations partagées, journal d'événements, sauvegarde/restauration JSON complète, tests de déterminisme/immutabilité/idempotence.
+- **P2** : objectifs/écarts, exports CSV/PDF natifs, backup/restore UX, API de calcul serveur durable.
+- **P3** : PWA avancée et collaboration multi-utilisateur.
+
 ## Persistance et limite de production
 
 L'Express local utilise un fichier JSON (`SIMBIZ_DATA_DIR/games.json`) avec écriture atomique. Les Netlify Functions utilisent volontairement un store mémoire par instance chaude : le système de fichiers des Functions est éphémère et les instances peuvent être remplacées ou multipliées. Les parties invitées peuvent donc disparaître après un cold start, un déploiement ou une autre instance ; l'application conserve toujours une sauvegarde `localStorage` et son mode hors ligne. Le code ne prétend pas fournir une persistance durable ou une synchronisation cross-device garantie sans ajouter un fournisseur externe (par exemple Supabase) et ses identifiants.
