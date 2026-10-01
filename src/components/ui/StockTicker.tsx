@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { TrendingUp, TrendingDown, Activity, Sparkles, Flame, Zap } from 'lucide-react';
 
@@ -33,7 +33,6 @@ export const StockTicker: React.FC<StockTickerProps> = ({
 }) => {
   const currency = companySettings?.currency || '€';
 
-  // Base ticker list
   const tickerList: TickerItem[] = useMemo(() => {
     const list: TickerItem[] = [];
     const competitors = snapshot.competitorsBenchmark || [];
@@ -44,11 +43,12 @@ export const StockTicker: React.FC<StockTickerProps> = ({
       const firmRes = snapshot.firmsResults[fid];
       const prevFirmRes = prevSnapshot?.firmsResults[fid];
 
-      const currentPrice = firmRes?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
+      const quote = snapshot.marketStocks?.[fid];
+      const currentPrice = quote?.price || firmRes?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
       // If no prevSnapshot (e.g. period 0), reference nominal IPO par value 50.00
       const previousPrice = prevFirmRes?.balanceSheet.ratios.sharePrice || (isUser ? 50 : (comp.sharePrice ? comp.sharePrice * 0.98 : 50));
 
-      const pctInterPeriod = previousPrice > 0 ? ((currentPrice - previousPrice) / previousPrice) * 100 : 0;
+      const pctInterPeriod = quote?.changePercent ?? (previousPrice > 0 ? ((currentPrice - previousPrice) / previousPrice) * 100 : 0);
       const isHighVolatility = Math.abs(pctInterPeriod) >= 15.0;
 
       let symbol = `F${fid}`;
@@ -97,56 +97,14 @@ export const StockTicker: React.FC<StockTickerProps> = ({
     return list;
   }, [snapshot, prevSnapshot, companySettings]);
 
-  // Real-time micro-fluctuations simulator state
-  const [microDeltas, setMicroDeltas] = useState<Record<string, number>>({});
-  const [flashingItem, setFlashingItem] = useState<{ id: string; direction: 'up' | 'down' } | null>(null);
-
-  // Periodic random micro-tick fluctuation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (tickerList.length === 0) return;
-
-      // Pick a random firm to tick
-      const randomIdx = Math.floor(Math.random() * tickerList.length);
-      const target = tickerList[randomIdx];
-      
-      // Random micro-jitter (-0.18 to +0.22)
-      const jitter = (Math.random() * 0.40 - 0.18);
-      const direction: 'up' | 'down' = jitter >= 0 ? 'up' : 'down';
-
-      setMicroDeltas(prev => {
-        const cur = prev[target.id] || 0;
-        // Keep delta bound within +/- 1.20
-        const nextDelta = Math.max(-1.2, Math.min(1.2, cur + jitter));
-        return {
-          ...prev,
-          [target.id]: nextDelta,
-        };
-      });
-
-      // Trigger flash effect
-      setFlashingItem({ id: target.id, direction });
-      const timeout = setTimeout(() => {
-        setFlashingItem(null);
-      }, 900);
-
-      return () => clearTimeout(timeout);
-    }, 2800);
-
-    return () => clearInterval(interval);
-  }, [tickerList]);
-
   // Market index calculation (SIMBIX-6)
   const averageChangePct = useMemo(() => {
     if (tickerList.length === 0) return 0;
     const totalChange = tickerList.reduce((acc, t) => {
-      const delta = microDeltas[t.id] || 0;
-      const cur = t.basePrice + delta;
-      const pct = ((cur - t.prevPrice) / Math.max(1, t.prevPrice)) * 100;
-      return acc + pct;
+      return acc + t.pctInterPeriod;
     }, 0);
     return totalChange / tickerList.length;
-  }, [tickerList, microDeltas]);
+  }, [tickerList]);
 
   // Check if any firm has high volatility (>= 15%)
   const volatileFirms = useMemo(() => {
@@ -203,12 +161,9 @@ export const StockTicker: React.FC<StockTickerProps> = ({
           {[1, 2].map(iteration => (
             <React.Fragment key={iteration}>
               {tickerList.map(ticker => {
-                const delta = microDeltas[ticker.id] || 0;
-                const livePrice = Math.max(1, ticker.basePrice + delta);
-                const priceDiff = livePrice - ticker.prevPrice;
-                const pctDiff = (priceDiff / Math.max(1, ticker.prevPrice)) * 100;
-                const isPositive = priceDiff >= 0;
-                const isFlashing = flashingItem?.id === ticker.id;
+                const livePrice = ticker.basePrice;
+                const pctDiff = ticker.pctInterPeriod;
+                const isPositive = pctDiff >= 0;
                 const isSelected = selectedFirmId === ticker.id;
                 const isVolatile = ticker.isHighVolatility;
 
@@ -222,12 +177,6 @@ export const StockTicker: React.FC<StockTickerProps> = ({
                       isSelected
                         ? 'bg-slate-850 ring-1 ring-slate-700'
                         : 'hover:bg-slate-900'
-                    } ${
-                      isFlashing
-                        ? flashingItem.direction === 'up'
-                          ? 'flash-up'
-                          : 'flash-down'
-                        : ''
                     } ${
                       isVolatile
                         ? 'border border-amber-500/40 bg-amber-950/20'

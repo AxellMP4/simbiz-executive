@@ -15,6 +15,7 @@ export const MarketAnalysisView: React.FC<MarketAnalysisViewProps> = ({
   companySettings,
 }) => {
   const { marketEnvironment, competitorsBenchmark } = snapshot;
+  const marketStocks = Object.values(snapshot.marketStocks || {});
   const currency = companySettings?.currency || '€';
   const prodAName = companySettings?.productAName || 'Produit Alpha A';
   const prodBName = companySettings?.productBName || 'Produit Apex B';
@@ -87,6 +88,34 @@ export const MarketAnalysisView: React.FC<MarketAnalysisViewProps> = ({
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
             <Compass className="w-4 h-4 text-sky-400" />
             <span>Baromètre Conjoncturel</span>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-100">Cours SIMBIX · fondamentaux &amp; choc macro</h3>
+                <p className="text-xs text-slate-500 mt-1">Chaque variation est rejouable : résultat, dynamique sectorielle et choc borné de la période.</p>
+              </div>
+              <span className="text-[11px] text-slate-500 font-mono">Volume période</span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {marketStocks.map(stock => (
+                <div key={stock.firmId} className={`rounded-md border p-3 ${stock.firmId === selectedFirmId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-slate-800 bg-slate-950/60'}`} title={stock.driver}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs font-semibold text-slate-200">{stock.symbol}</span>
+                    <span className={`font-mono text-xs ${stock.changePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%</span>
+                  </div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <strong className="font-mono text-lg text-white">{stock.price.toFixed(2)} {currency}</strong>
+                    <span className="text-[10px] text-slate-500">{stock.volume.toLocaleString('fr-FR')} titres</span>
+                  </div>
+                  <div className="mt-2 flex h-6 items-end gap-0.5" aria-label={`Historique ${stock.symbol}`}>
+                    {stock.history.map((value, index) => <span key={`${stock.firmId}-${index}`} className="flex-1 rounded-sm bg-indigo-400/70" style={{ height: `${Math.max(18, (value / Math.max(...stock.history)) * 100)}%` }} />)}
+                  </div>
+                  <p className="mt-2 truncate text-[10px] text-slate-500">{stock.driver}</p>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="text-xs font-mono space-y-2 text-slate-300">
             <div className="flex justify-between py-1 border-b border-slate-800">

@@ -7,6 +7,7 @@ import {
   SystemMessage,
   CompanySettings
 } from '../types/simulation';
+import { evolveMarketStocks } from '../domain/marketEvolution';
 
 // Helper for rounding to 2 decimals
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -817,6 +818,7 @@ export function simulateNextPeriod(
     marketEnvironment: newEnv,
     firmsResults: nextFirmsResults,
     competitorsBenchmark: competitorBench,
+    marketStocks: evolveMarketStocks(nextPeriod, newEnv, competitorBench, nextFirmsResults, currentSnapshot.marketStocks, companySettings),
   };
 
   // Generate dynamic system messages for the user (F1)

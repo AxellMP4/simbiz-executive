@@ -327,6 +327,19 @@ export interface PeriodSnapshot {
   marketEnvironment: MarketEnvironment;
   firmsResults: Record<string, FirmPeriodResult>;
   competitorsBenchmark: CompetitorMarketData[];
+  marketStocks?: Record<string, MarketStock>;
+}
+
+export interface MarketStock {
+  firmId: string;
+  symbol: string;
+  price: number;
+  previousClose: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  history: number[];
+  driver: string;
 }
 
 export interface SystemMessage {
@@ -346,7 +359,26 @@ export type IndustrySector =
   | 'aero_defense'
   | 'medtech_robotics'
   | 'cleantech_energy'
-  | 'automotive_mobility';
+  | 'automotive_mobility'
+  | 'saas_digital'
+  | 'retail_consumer'
+  | 'healthcare_services'
+  | 'industrial_equipment'
+  | 'food_agri'
+  | 'media_entertainment'
+  | 'finance_insurtech'
+  | 'logistics_supply'
+  | 'education_learning'
+  | 'climate_circular';
+
+export interface SectorEconomics {
+  demandVolatility: number;
+  capitalIntensity: number;
+  regulationSensitivity: number;
+  esgSensitivity: number;
+  grossMargin: number;
+  demandGrowth: number;
+}
 
 export type CeoPersona =
   | 'tech_visionary'
@@ -364,6 +396,7 @@ export interface CompanySettings {
   productBName: string;
   productADesc: string;
   productBDesc: string;
+  sectorEconomics?: SectorEconomics;
   ceoName: string;
   ceoPersona: CeoPersona;
   brandColor: string; // hex e.g. '#6366f1'

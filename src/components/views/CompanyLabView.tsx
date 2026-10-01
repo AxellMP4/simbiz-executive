@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CompanySettings } from '../../types/simulation';
-import { CEO_PERSONAS, INDUSTRY_SECTORS } from '../../data/customizationData';
+import { CEO_PERSONAS, INDUSTRY_SECTORS, SECTOR_ECONOMICS } from '../../data/customizationData';
 
 interface Props {
   settings: CompanySettings;
@@ -30,8 +30,9 @@ export const CompanyLabView: React.FC<Props> = ({ settings, onSave }) => {
             <label className="block text-xs text-slate-400">Secteur<select value={draft.industrySector} onChange={e => {
               const sector = e.target.value as CompanySettings['industrySector'];
               const info = INDUSTRY_SECTORS[sector];
-              setDraft(prev => ({ ...prev, industrySector: sector, sectorName: info.name, productAName: info.productAName, productBName: info.productBName, productADesc: info.productADesc, productBDesc: info.productBDesc, brandColor: info.defaultColor }));
+              setDraft(prev => ({ ...prev, industrySector: sector, sectorName: info.name, productAName: info.productAName, productBName: info.productBName, productADesc: info.productADesc, productBDesc: info.productBDesc, brandColor: info.defaultColor, sectorEconomics: SECTOR_ECONOMICS[sector] }));
             }} className="lab-input">{sectors.map(([id, info]) => <option key={id} value={id}>{info.name}</option>)}</select></label>
+            <p className="text-xs text-slate-500">Chaque secteur modifie la croissance, la volatilité de la demande, l'intensité capitalistique et l'exposition réglementaire du marché.</p>
             <label className="block text-xs text-slate-400">Périmètre<select value={draft.marketScope || 'europe'} onChange={e => update('marketScope', e.target.value as CompanySettings['marketScope'])} className="lab-input"><option value="local">Local</option><option value="europe">Europe</option><option value="global">Mondial</option></select></label>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">

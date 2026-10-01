@@ -537,7 +537,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="main-column flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Unified TopBar with P0 selector, Real-time Stock Ticker & Haute Volatilité */}
         <TopBar
           periods={availablePeriods}

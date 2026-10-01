@@ -39,21 +39,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .cockpit-shell { background: var(--canvas); color: var(--ink); }
 .cockpit-header { border-bottom-color: var(--line-strong) !important; }
 .metric-card, .surface-panel { background: var(--surface) !important; border-color: var(--line) !important; box-shadow: var(--shadow-sm); }
-.sync-status { position: fixed; right: 1rem; bottom: 1rem; z-index: 20; display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--line); border-radius: 999px; background: #111b2e; color: var(--ink-muted); padding: .5rem .75rem; font: 600 .68rem/1 "SF Mono", ui-monospace, monospace; box-shadow: var(--shadow-sm); }
+.main-column { position: relative; }
+.sync-status { align-self: flex-end; flex: 0 0 auto; margin: .45rem .9rem .65rem; display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--line); border-radius: 999px; background: #111b2e; color: var(--ink-muted); padding: .42rem .7rem; font: 600 .66rem/1 "SF Mono", ui-monospace, monospace; box-shadow: var(--shadow-sm); max-width: min(100% - 1.8rem, 28rem); }
 .sync-dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--ink-subtle); }
 .sync-dot.online { background: var(--success); }
 .sync-dot.offline { background: var(--warning); }
 
 .advisor-panel { position: relative; width: min(100%, 540px); }
 .advisor-panel--compact { width: auto; }
-.advisor-trigger { min-height: 38px; display: inline-flex; align-items: center; gap: .55rem; border: 1px solid rgba(129, 140, 248, .35); border-radius: 10px; padding: .35rem .6rem; background: #1a2140; color: var(--ink); cursor: pointer; }
+.advisor-trigger { min-height: 38px; display: inline-flex; align-items: center; gap: .55rem; border: 1px solid rgba(129, 140, 248, .35); border-radius: 10px; padding: .35rem .6rem; background: #1a2140; color: var(--ink); cursor: pointer; position: relative; z-index: 1; }
 .advisor-trigger:hover { background: #252d54; border-color: rgba(129, 140, 248, .65); }
 .advisor-trigger strong, .advisor-trigger span span { display: block; }
 .advisor-trigger strong { font-size: .72rem; }
 .advisor-trigger span span { color: var(--ink-muted); font-size: .62rem; }
 .advisor-trigger__icon { display: grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 7px; background: rgba(129, 140, 248, .18); color: var(--accent); }
 .advisor-count { min-width: 1.15rem; padding: .15rem .3rem; border-radius: 999px; background: rgba(251, 113, 133, .18); color: var(--danger); font-size: .65rem; font-weight: 700; text-align: center; }
-.advisor-teaser { width: 100%; display: flex; align-items: center; gap: .55rem; margin-top: .65rem; padding: .7rem .85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-muted); text-align: left; font-size: .72rem; cursor: pointer; }
+.advisor-teaser { width: 100%; display: flex; align-items: center; gap: .55rem; margin-top: .5rem; padding: .62rem .85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-muted); text-align: left; font-size: .72rem; cursor: pointer; position: relative; z-index: 0; }
 .advisor-teaser:hover { border-color: rgba(129, 140, 248, .5); color: var(--ink); }
 .advisor-severity { width: .45rem; height: .45rem; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
 .advisor-severity--critical { background: var(--danger); }
@@ -98,7 +99,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .sidebar-shell .border-l { margin-left: 0; padding-left: 0; border-left: 0; }
   .sidebar-shell .p-4 { padding: .75rem; }
   .sidebar-shell .p-4 > div { justify-content: center; }
-  .sync-status { right: .6rem; bottom: .6rem; max-width: calc(100vw - 1.2rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sync-status { margin: .35rem .6rem .5rem; max-width: calc(100% - 1.2rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cockpit-shell { padding: 1rem !important; }
   .advisor-panel--compact .advisor-trigger { padding: .35rem; }
   .advisor-panel--compact .advisor-trigger > span:nth-child(2) { display: none; }
