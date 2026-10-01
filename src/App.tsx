@@ -43,7 +43,7 @@ import { AdvisorRecommendation, getManagementRecommendations } from './domain/ma
 import { GuidedTourView } from './components/views/guided/GuidedTourView';
 import { MobileNavDock } from './components/layout/MobileNavDock';
 import { FinancialMarketView } from './components/views/FinancialMarketView';
-import { createFinancialMarketState, evolveFinancialMarket, FinancialMarketState } from './domain/financialMarket';
+import { createFinancialMarketState, evolveFinancialMarket, FinancialMarketState, executeOrder, instrumentsFromSnapshot } from './domain/financialMarket';
 
 const STORAGE_KEY = 'simbiz_executive_simulation_p0_v5';
 
@@ -499,6 +499,17 @@ export default function App() {
     setMessages(prev => prev.map(m => ({ ...m, read: true })));
   };
 
+  const handleExecuteTrade = (firmId: string, quantity: number, side: 'buy' | 'sell', stopLoss?: number, takeProfit?: number) => {
+    try {
+      const instruments = instrumentsFromSnapshot(activeSnapshot, companySettings);
+      const nextState = executeOrder(financialMarketState, instruments, { side, firmId, quantity }, currentPeriod);
+      setFinancialMarketState(nextState);
+      showToast('Ordre exécuté', `Ordre ${side === 'buy' ? "d'achat" : 'de vente'} de ${quantity} titres validé sur le marché.`, 'success');
+    } catch (e: any) {
+      showToast("Erreur d'ordre", e.message || "Impossible d'exécuter l'ordre.", 'warning');
+    }
+  };
+
   const handleExportState = () => {
     const state = { snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus, financialMarketState };
     const anchor = document.createElement('a');
@@ -627,6 +638,7 @@ export default function App() {
             <ExecutiveCockpitView
               snapshot={activeSnapshot}
               previous={prevSnapshot}
+              snapshots={snapshots}
               companySettings={companySettings}
               pendingDecisions={pendingDecisions}
               periodStatus={periodStatus}
@@ -638,6 +650,8 @@ export default function App() {
               onToggleAdvisor={() => setAdvisorOpen(true)}
               onAdvisorNavigate={handleAdvisorNavigate}
               onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
+              marketState={financialMarketState}
+              onExecuteTrade={handleExecuteTrade}
             />
           )}
 

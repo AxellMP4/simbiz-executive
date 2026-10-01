@@ -52,7 +52,7 @@ test('invalid portfolio state is rejected before execution', () => {
   assert.equal(validateOrder(state, instruments, { side: 'buy', firmId: '1', quantity: 1 }).valid, false);
 });
 
-test('the initial market gives every firm the same nominal level', () => {
+test('the initial market gives every firm the same nominal baseline level', () => {
   const initial = getHistoricalSnapshots()[0];
   const prices = initial.competitorsBenchmark.map(firm => firm.sharePrice);
   assert.deepEqual(prices, [50, 50, 50, 50, 50, 50]);

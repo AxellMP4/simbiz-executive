@@ -892,12 +892,23 @@ export function simulateNextPeriod(
     b.marketShareOverall = totalSalesAll > 0 ? r2((b.salesRevenue / totalSalesAll) * 100) : 0;
   });
 
+  const marketStocks = evolveMarketStocks(nextPeriod, newEnv, competitorBench, nextFirmsResults, currentSnapshot.marketStocks, companySettings);
+  competitorBench.forEach(b => {
+    if (marketStocks[b.firmId]) {
+      b.sharePrice = marketStocks[b.firmId].price;
+      const firmRes = nextFirmsResults[b.firmId];
+      if (firmRes) {
+        firmRes.balanceSheet.ratios.sharePrice = marketStocks[b.firmId].price;
+      }
+    }
+  });
+
   const nextSnapshot: PeriodSnapshot = {
     period: nextPeriod,
     marketEnvironment: newEnv,
     firmsResults: nextFirmsResults,
     competitorsBenchmark: competitorBench,
-    marketStocks: evolveMarketStocks(nextPeriod, newEnv, competitorBench, nextFirmsResults, currentSnapshot.marketStocks, companySettings),
+    marketStocks,
   };
 
   // Generate dynamic system messages for the user (F1)

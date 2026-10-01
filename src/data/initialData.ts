@@ -96,12 +96,12 @@ export const INITIAL_SNAPSHOTS: Record<number, PeriodSnapshot> = {
       specialEventImpact: 'Demande globale stimulée par la transition numérique des usines clientes.',
     },
     competitorsBenchmark: [
-      { firmId: '1', firmName: 'AeroPulse Tech (Vous)', salesRevenue: 1385000, netProfit: 82875, cash: 425000, marketShareOverall: 17.5, marketShareLocalA: 17.8, marketShareLocalB: 18.0, marketShareExportA: 16.5, marketShareExportB: 17.0, priceLocalA: 96.0, priceLocalB: 175.0, priceExportA: 94.0, priceExportB: 182.0, salesVolumeA: 3450, salesVolumeB: 780, salesVolumeExportA: 720, salesVolumeExportB: 140, adSpend: 22000, sellersCount: 8, sharePrice: 52.50, esgScore: 74 },
-      { firmId: '2', firmName: 'VoltaCore Systems', salesRevenue: 1410000, netProfit: 68500, cash: 395000, marketShareOverall: 18.2, marketShareLocalA: 20.5, marketShareLocalB: 11.0, marketShareExportA: 18.0, marketShareExportB: 10.5, priceLocalA: 92.0, priceLocalB: 165.0, priceExportA: 90.0, priceExportB: 170.0, salesVolumeA: 4100, salesVolumeB: 490, salesVolumeExportA: 820, salesVolumeExportB: 90, adSpend: 20000, sellersCount: 9, sharePrice: 48.00, esgScore: 61 },
-      { firmId: '3', firmName: 'Zenith Avionics', salesRevenue: 1460000, netProfit: 105400, cash: 460000, marketShareOverall: 17.2, marketShareLocalA: 14.5, marketShareLocalB: 24.5, marketShareExportA: 14.0, marketShareExportB: 25.5, priceLocalA: 102.0, priceLocalB: 185.0, priceExportA: 100.0, priceExportB: 192.0, salesVolumeA: 2850, salesVolumeB: 1120, salesVolumeExportA: 610, salesVolumeExportB: 225, adSpend: 26000, sellersCount: 8, sharePrice: 56.80, esgScore: 70 },
-      { firmId: '4', firmName: 'Atlas Global Trade', salesRevenue: 1395000, netProfit: 79200, cash: 410000, marketShareOverall: 16.8, marketShareLocalA: 15.2, marketShareLocalB: 15.8, marketShareExportA: 22.0, marketShareExportB: 21.0, priceLocalA: 97.0, priceLocalB: 178.0, priceExportA: 93.0, priceExportB: 180.0, salesVolumeA: 3050, salesVolumeB: 690, salesVolumeExportA: 1050, salesVolumeExportB: 190, adSpend: 24000, sellersCount: 9, sharePrice: 50.20, esgScore: 68 },
-      { firmId: '5', firmName: 'Helios GreenTech', salesRevenue: 1340000, netProfit: 76500, cash: 440000, marketShareOverall: 15.6, marketShareLocalA: 16.2, marketShareLocalB: 17.2, marketShareExportA: 15.0, marketShareExportB: 14.5, priceLocalA: 98.0, priceLocalB: 180.0, priceExportA: 96.0, priceExportB: 185.0, salesVolumeA: 3180, salesVolumeB: 740, salesVolumeExportA: 670, salesVolumeExportB: 130, adSpend: 23000, sellersCount: 8, sharePrice: 53.40, esgScore: 88 },
-      { firmId: '6', firmName: 'Titan Robotics', salesRevenue: 1370000, netProfit: 72100, cash: 380000, marketShareOverall: 14.7, marketShareLocalA: 15.8, marketShareLocalB: 13.5, marketShareExportA: 14.5, marketShareExportB: 11.5, priceLocalA: 94.5, priceLocalB: 170.0, priceExportA: 93.5, priceExportB: 175.0, salesVolumeA: 3350, salesVolumeB: 610, salesVolumeExportA: 680, salesVolumeExportB: 105, adSpend: 19000, sellersCount: 8, sharePrice: 49.50, esgScore: 64 },
+      { firmId: '1', firmName: 'AeroPulse Tech (Vous)', salesRevenue: 1385000, netProfit: 82875, cash: 425000, marketShareOverall: 17.5, marketShareLocalA: 17.8, marketShareLocalB: 18.0, marketShareExportA: 16.5, marketShareExportB: 17.0, priceLocalA: 96.0, priceLocalB: 175.0, priceExportA: 94.0, priceExportB: 182.0, salesVolumeA: 3450, salesVolumeB: 780, salesVolumeExportA: 720, salesVolumeExportB: 140, adSpend: 22000, sellersCount: 8, sharePrice: 50.00, esgScore: 74 },
+      { firmId: '2', firmName: 'VoltaCore Systems', salesRevenue: 1410000, netProfit: 68500, cash: 395000, marketShareOverall: 18.2, marketShareLocalA: 20.5, marketShareLocalB: 11.0, marketShareExportA: 18.0, marketShareExportB: 10.5, priceLocalA: 92.0, priceLocalB: 165.0, priceExportA: 90.0, priceExportB: 170.0, salesVolumeA: 4100, salesVolumeB: 490, salesVolumeExportA: 820, salesVolumeExportB: 90, adSpend: 20000, sellersCount: 9, sharePrice: 50.00, esgScore: 61 },
+      { firmId: '3', firmName: 'Zenith Avionics', salesRevenue: 1460000, netProfit: 105400, cash: 460000, marketShareOverall: 17.2, marketShareLocalA: 14.5, marketShareLocalB: 24.5, marketShareExportA: 14.0, marketShareExportB: 25.5, priceLocalA: 102.0, priceLocalB: 185.0, priceExportA: 100.0, priceExportB: 192.0, salesVolumeA: 2850, salesVolumeB: 1120, salesVolumeExportA: 610, salesVolumeExportB: 225, adSpend: 26000, sellersCount: 8, sharePrice: 50.00, esgScore: 70 },
+      { firmId: '4', firmName: 'Atlas Global Trade', salesRevenue: 1395000, netProfit: 79200, cash: 410000, marketShareOverall: 16.8, marketShareLocalA: 15.2, marketShareLocalB: 15.8, marketShareExportA: 22.0, marketShareExportB: 21.0, priceLocalA: 97.0, priceLocalB: 178.0, priceExportA: 93.0, priceExportB: 180.0, salesVolumeA: 3050, salesVolumeB: 690, salesVolumeExportA: 1050, salesVolumeExportB: 190, adSpend: 24000, sellersCount: 9, sharePrice: 50.00, esgScore: 68 },
+      { firmId: '5', firmName: 'Helios GreenTech', salesRevenue: 1340000, netProfit: 76500, cash: 440000, marketShareOverall: 15.6, marketShareLocalA: 16.2, marketShareLocalB: 17.2, marketShareExportA: 15.0, marketShareExportB: 14.5, priceLocalA: 98.0, priceLocalB: 180.0, priceExportA: 96.0, priceExportB: 185.0, salesVolumeA: 3180, salesVolumeB: 740, salesVolumeExportA: 670, salesVolumeExportB: 130, adSpend: 23000, sellersCount: 8, sharePrice: 50.00, esgScore: 88 },
+      { firmId: '6', firmName: 'Titan Robotics', salesRevenue: 1370000, netProfit: 72100, cash: 380000, marketShareOverall: 14.7, marketShareLocalA: 15.8, marketShareLocalB: 13.5, marketShareExportA: 14.5, marketShareExportB: 11.5, priceLocalA: 94.5, priceLocalB: 170.0, priceExportA: 93.5, priceExportB: 175.0, salesVolumeA: 3350, salesVolumeB: 610, salesVolumeExportA: 680, salesVolumeExportB: 105, adSpend: 19000, sellersCount: 8, sharePrice: 50.00, esgScore: 64 },
     ],
     firmsResults: {
       '1': {
@@ -409,27 +409,39 @@ export const INITIAL_SNAPSHOTS: Record<number, PeriodSnapshot> = {
     };
   }
 
-  // All firms start from the same nominal IPO level. Competitive differences
-  // emerge from decisions and the deterministic market engine after P0.
+  // Each firm has its own distinct competitive stock price and profile based on its fundamentals
+  const initialSymbols: Record<string, { symbol: string; driver: string }> = {
+    '1': { symbol: 'APULSE', driver: 'Positionnement technologique équilibré' },
+    '2': { symbol: 'VOLTA', driver: 'Forte pénétration marché local A' },
+    '3': { symbol: 'ZENITH', driver: 'Rentabilité élevée et marge premium' },
+    '4': { symbol: 'ATLAS', driver: 'Leadership sur les volumes export' },
+    '5': { symbol: 'HELIOS', driver: 'Excellence ESG et innovation verte' },
+    '6': { symbol: 'TITAN', driver: 'Efficience industrielle et robotique' },
+  };
+
   p0.competitorsBenchmark.forEach(benchmark => {
-    benchmark.sharePrice = 50;
     const firm = p0.firmsResults[benchmark.firmId];
-    if (firm) firm.balanceSheet.ratios.sharePrice = 50;
+    if (firm && benchmark.sharePrice) firm.balanceSheet.ratios.sharePrice = benchmark.sharePrice;
   });
-  p0.marketStocks = Object.fromEntries(p0.competitorsBenchmark.map(benchmark => [
-    benchmark.firmId,
-    {
-      firmId: benchmark.firmId,
-      symbol: benchmark.firmId === '1' ? 'APULSE' : `F${benchmark.firmId}`,
-      price: 50,
-      previousClose: 50,
-      change: 0,
-      changePercent: 0,
-      volume: 0,
-      history: [50],
-      driver: 'Niveau initial commun',
-    },
-  ]));
+
+  p0.marketStocks = Object.fromEntries(p0.competitorsBenchmark.map(benchmark => {
+    const info = initialSymbols[benchmark.firmId] || { symbol: `F${benchmark.firmId}`, driver: 'Cotation initiale' };
+    const price = benchmark.sharePrice || 50;
+    return [
+      benchmark.firmId,
+      {
+        firmId: benchmark.firmId,
+        symbol: benchmark.firmId === '1' ? 'APULSE' : info.symbol,
+        price,
+        previousClose: price,
+        change: 0,
+        changePercent: 0,
+        volume: 32000 + Number(benchmark.firmId) * 4500,
+        history: [price],
+        driver: info.driver,
+      },
+    ];
+  }));
 })();
 
 export const getHistoricalSnapshots = (): Record<number, PeriodSnapshot> => {
