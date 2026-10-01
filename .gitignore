@@ -11,3 +11,9 @@ dist-server/
 
 # Local Netlify folder
 .netlify
+
+# Native Xcode
+ios/**/DerivedData/
+ios/**/build/
+ios/**/*.xcuserstate
+ios/**/*.xcworkspace/xcuserdata/
