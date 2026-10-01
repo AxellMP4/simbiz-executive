@@ -45,16 +45,20 @@ struct CompanyProfile: Codable, Equatable {
     var organization: String = "Équipe intégrée"
     var products: String = "Solution principale"
     var suppliers: String = "Réseau européen"
+    var ceoName: String = ""
+    var logoIcon: String = "cpu"
+    var currency: String = "€"
+    var theme: String = "midnight"
     var accentColor: Color { Color(hex: accentHex) }
 
-    init(name: String, ticker: String, sector: Sector, country: String, market: Market = .france, persona: Persona, strategy: Strategy, risk: Risk, emoji: String, accentHex: String, organization: String = "Équipe intégrée", products: String = "Solution principale", suppliers: String = "Réseau européen") {
-        self.name = name; self.ticker = ticker; self.sector = sector; self.country = country; self.market = market; self.persona = persona; self.strategy = strategy; self.risk = risk; self.emoji = emoji; self.accentHex = accentHex; self.organization = organization; self.products = products; self.suppliers = suppliers
+    init(name: String, ticker: String, sector: Sector, country: String, market: Market = .france, persona: Persona, strategy: Strategy, risk: Risk, emoji: String, accentHex: String, organization: String = "Équipe intégrée", products: String = "Solution principale", suppliers: String = "Réseau européen", ceoName: String = "", logoIcon: String = "cpu", currency: String = "€", theme: String = "midnight") {
+        self.name = name; self.ticker = ticker; self.sector = sector; self.country = country; self.market = market; self.persona = persona; self.strategy = strategy; self.risk = risk; self.emoji = emoji; self.accentHex = accentHex; self.organization = organization; self.products = products; self.suppliers = suppliers; self.ceoName = ceoName; self.logoIcon = logoIcon; self.currency = currency; self.theme = theme
     }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         name = try c.decode(String.self, forKey: .name); ticker = try c.decode(String.self, forKey: .ticker); sector = try c.decode(Sector.self, forKey: .sector); country = try c.decode(String.self, forKey: .country)
         market = try c.decodeIfPresent(Market.self, forKey: .market) ?? .france; persona = try c.decode(Persona.self, forKey: .persona); strategy = try c.decode(Strategy.self, forKey: .strategy); risk = try c.decode(Risk.self, forKey: .risk); emoji = try c.decode(String.self, forKey: .emoji); accentHex = try c.decode(String.self, forKey: .accentHex)
-        organization = try c.decodeIfPresent(String.self, forKey: .organization) ?? "Équipe intégrée"; products = try c.decodeIfPresent(String.self, forKey: .products) ?? "Solution principale"; suppliers = try c.decodeIfPresent(String.self, forKey: .suppliers) ?? "Réseau européen"
+        organization = try c.decodeIfPresent(String.self, forKey: .organization) ?? "Équipe intégrée"; products = try c.decodeIfPresent(String.self, forKey: .products) ?? "Solution principale"; suppliers = try c.decodeIfPresent(String.self, forKey: .suppliers) ?? "Réseau européen"; ceoName = try c.decodeIfPresent(String.self, forKey: .ceoName) ?? ""; logoIcon = try c.decodeIfPresent(String.self, forKey: .logoIcon) ?? "cpu"; currency = try c.decodeIfPresent(String.self, forKey: .currency) ?? "€"; theme = try c.decodeIfPresent(String.self, forKey: .theme) ?? "midnight"
     }
 }
 
@@ -73,12 +77,33 @@ struct Decisions: Codable, Equatable {
     var dividend: Double = 0
     var supplierLeadTime: Int = 14
     var crisisChoice: String = "resilience"
+    var priceA: Double = 96
+    var priceB: Double = 175
+    var priceAExport: Double = 94
+    var priceBExport: Double = 182
+    var productionA: Int = 2_100
+    var productionB: Int = 1_600
+    var activeMachines: Int = 4
+    var laborUtilizationRate: Double = 1
+    var rawMaterialOrder: Int = 8_000
+    var maintenanceBudget: Double = 4_000
+    var qvtBudget: Double = 5_000
+    var workerBonusRate: Double = 0.03
+    var shortTermLoan: Double = 0
+    var mediumTermLoan: Double = 0
+    var loanRepayment: Double = 0
+    var clientPaymentTerms: Int = 30
+    var supplierContract: String = "contract"
+    var marketingChannel: String = "balanced"
+    var recruitmentWorkers: Int = 0
+    var recruitmentSales: Int = 0
     init(price: Double = 98, production: Int = 3_700, marketing: Double = 18_000, hiring: Int = 0, training: Double = 12_000, safetyStock: Int = 800, exportPrice: Double = 182, salesPeople: Int = 3, rndBudget: Double = 14_000, qualityBudget: Double = 6_000, loan: Double = 0, dividend: Double = 0, supplierLeadTime: Int = 14, crisisChoice: String = "resilience") {
         self.price = price; self.production = production; self.marketing = marketing; self.hiring = hiring; self.training = training; self.safetyStock = safetyStock; self.exportPrice = exportPrice; self.salesPeople = salesPeople; self.rndBudget = rndBudget; self.qualityBudget = qualityBudget; self.loan = loan; self.dividend = dividend; self.supplierLeadTime = supplierLeadTime; self.crisisChoice = crisisChoice
     }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         price = try c.decodeIfPresent(Double.self, forKey: .price) ?? 98; production = try c.decodeIfPresent(Int.self, forKey: .production) ?? 3_700; marketing = try c.decodeIfPresent(Double.self, forKey: .marketing) ?? 18_000; hiring = try c.decodeIfPresent(Int.self, forKey: .hiring) ?? 0; training = try c.decodeIfPresent(Double.self, forKey: .training) ?? 12_000; safetyStock = try c.decodeIfPresent(Int.self, forKey: .safetyStock) ?? 800; exportPrice = try c.decodeIfPresent(Double.self, forKey: .exportPrice) ?? 182; salesPeople = try c.decodeIfPresent(Int.self, forKey: .salesPeople) ?? 3; rndBudget = try c.decodeIfPresent(Double.self, forKey: .rndBudget) ?? 14_000; qualityBudget = try c.decodeIfPresent(Double.self, forKey: .qualityBudget) ?? 6_000; loan = try c.decodeIfPresent(Double.self, forKey: .loan) ?? 0; dividend = try c.decodeIfPresent(Double.self, forKey: .dividend) ?? 0; supplierLeadTime = try c.decodeIfPresent(Int.self, forKey: .supplierLeadTime) ?? 14; crisisChoice = try c.decodeIfPresent(String.self, forKey: .crisisChoice) ?? "resilience"
+        priceA = try c.decodeIfPresent(Double.self, forKey: .priceA) ?? 96; priceB = try c.decodeIfPresent(Double.self, forKey: .priceB) ?? 175; priceAExport = try c.decodeIfPresent(Double.self, forKey: .priceAExport) ?? 94; priceBExport = try c.decodeIfPresent(Double.self, forKey: .priceBExport) ?? 182; productionA = try c.decodeIfPresent(Int.self, forKey: .productionA) ?? 2_100; productionB = try c.decodeIfPresent(Int.self, forKey: .productionB) ?? 1_600; activeMachines = try c.decodeIfPresent(Int.self, forKey: .activeMachines) ?? 4; laborUtilizationRate = try c.decodeIfPresent(Double.self, forKey: .laborUtilizationRate) ?? 1; rawMaterialOrder = try c.decodeIfPresent(Int.self, forKey: .rawMaterialOrder) ?? 8_000; maintenanceBudget = try c.decodeIfPresent(Double.self, forKey: .maintenanceBudget) ?? 4_000; qvtBudget = try c.decodeIfPresent(Double.self, forKey: .qvtBudget) ?? 5_000; workerBonusRate = try c.decodeIfPresent(Double.self, forKey: .workerBonusRate) ?? 0.03; shortTermLoan = try c.decodeIfPresent(Double.self, forKey: .shortTermLoan) ?? 0; mediumTermLoan = try c.decodeIfPresent(Double.self, forKey: .mediumTermLoan) ?? 0; loanRepayment = try c.decodeIfPresent(Double.self, forKey: .loanRepayment) ?? 0; clientPaymentTerms = try c.decodeIfPresent(Int.self, forKey: .clientPaymentTerms) ?? 30; supplierContract = try c.decodeIfPresent(String.self, forKey: .supplierContract) ?? "contract"; marketingChannel = try c.decodeIfPresent(String.self, forKey: .marketingChannel) ?? "balanced"; recruitmentWorkers = try c.decodeIfPresent(Int.self, forKey: .recruitmentWorkers) ?? 0; recruitmentSales = try c.decodeIfPresent(Int.self, forKey: .recruitmentSales) ?? 0
     }
 }
 

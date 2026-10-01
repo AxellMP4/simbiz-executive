@@ -10,14 +10,15 @@ struct GlassCard<Content: View>: View {
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     private var surface: AnyView {
         if #available(iOS 26.0, *) {
-            return AnyView(ModernGlassSurface())
+            return AnyView(RoundedRectangle(cornerRadius: 18).fill(Color.canvas.opacity(0.78)).glassEffect())
         }
-        return AnyView(RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial).overlay(RoundedRectangle(cornerRadius: 22).stroke(.white.opacity(0.08))))
+        return AnyView(RoundedRectangle(cornerRadius: 18).fill(Color(red: 0.055, green: 0.08, blue: 0.14)).overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.10))))
     }
     var body: some View {
         content
             .padding(16)
             .background(surface)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 }
 
@@ -30,8 +31,8 @@ struct MetricTile: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial))
-        .overlay(RoundedRectangle(cornerRadius: 22).stroke(.white.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color(red: 0.055, green: 0.08, blue: 0.14)))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.10)))
         .accessibilityElement(children: .combine)
     }
 }
