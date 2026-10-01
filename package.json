@@ -4,14 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "dev:server": "tsx server/server.ts",
+    "dev": "tsx server.ts",
     "build": "vite build",
-    "build:server": "tsc --ignoreConfig --noEmit false --outDir dist-server --module NodeNext --moduleResolution NodeNext --target ES2022 --esModuleInterop true server/server.ts",
-    "start": "node dist-server/server.js",
+    "start": "node server.ts",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "clean": "rm -rf dist dist-server",
     "lint": "tsc --noEmit",
+    "test": "tsx --test \"src/domain/*.test.ts\" server/engine.test.ts server/api.test.ts",
     "test:engine": "tsx --test server/engine.test.ts",
     "test:api": "tsx --test server/api.test.ts",
     "test:lifecycle": "tsx --test src/domain/simulationLifecycle.test.ts"
@@ -29,7 +28,6 @@
     "vite": "^8.3.0"
   },
   "devDependencies": {
-    "@netlify/functions": "^6.0.2",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",

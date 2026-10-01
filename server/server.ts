@@ -2,10 +2,10 @@ import express from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createStore, handleApiRequest, Store } from './api.js';
+import { createStore, handleApiRequest, Store } from './api.ts';
 
 const configuredOrigin = process.env.CORS_ORIGIN
-  || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000');
+  || (process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:3000');
 const dataDir = process.env.SIMBIZ_DATA_DIR || path.join(path.dirname(fileURLToPath(import.meta.url)), 'data');
 const storePath = path.join(dataDir, 'games.json');
 const store: Store = createStore();
@@ -23,15 +23,12 @@ const persist = async () => {
 };
 
 export const createApp = () => {
-  if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGIN) {
-    throw new Error('CORS_ORIGIN doit être configurée en production');
-  }
   const app = express();
   app.use(express.json({ limit: '2mb' }));
   app.use((req, res, next) => {
     const requestOrigin = req.headers.origin;
-    if (configuredOrigin && requestOrigin === configuredOrigin) {
-      res.setHeader('Access-Control-Allow-Origin', configuredOrigin);
+    if (configuredOrigin === '*' || (configuredOrigin && requestOrigin === configuredOrigin)) {
+      res.setHeader('Access-Control-Allow-Origin', configuredOrigin === '*' ? '*' : configuredOrigin);
       res.setHeader('Vary', 'Origin');
     }
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
