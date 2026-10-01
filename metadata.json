@@ -1,0 +1,6 @@
+{
+  "name": "SimBiz Executive - Simulation de Gestion d'Entreprise",
+  "description": "Plateforme moderne de simulation de gestion d'entreprise : pilotage financier, production industrielle, RH avancées et analyses de marché concurrentielles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
