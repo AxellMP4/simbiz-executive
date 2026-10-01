@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, Flame, Zap } from 'lucide-react';
+import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, Flame, Zap, Maximize2, Minimize2, Compass } from 'lucide-react';
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { StockTicker } from '../ui/StockTicker';
 import { VolatilityModal } from '../ui/VolatilityModal';
@@ -24,6 +24,8 @@ interface TopBarProps {
   onToggleAdvisor: () => void;
   onAdvisorNavigate: (target: AdvisorRecommendation['targetTab']) => void;
   onDismissAdvisor: (id: string) => void;
+  isGuidedMode?: boolean;
+  onToggleGuidedMode?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -44,8 +46,25 @@ export const TopBar: React.FC<TopBarProps> = ({
   onToggleAdvisor,
   onAdvisorNavigate,
   onDismissAdvisor,
+  isGuidedMode = true,
+  onToggleGuidedMode,
 }) => {
   const [isVolatilityModalOpen, setIsVolatilityModalOpen] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  const toggleFullscreen = () => {
+    try {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen().catch(() => {});
+        setIsFullscreen(false);
+      }
+    } catch (e) {
+      console.warn('Fullscreen not available', e);
+    }
+  };
 
   const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
   const prevFirmResult = prevSnapshot?.firmsResults[selectedFirmId] || prevSnapshot?.firmsResults['1'];
@@ -80,13 +99,24 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <div className="shrink-0 flex flex-col z-10 shadow-sm">
       {/* Top Main Navigation Row */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 select-none">
-        {/* Zone 1: Period Navigator starting at P0 */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-indigo-950/70 border border-indigo-700/60 px-2.5 py-1 rounded text-xs font-tech font-bold uppercase tracking-wider text-indigo-300">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>PÉRIODE</span>
-          </div>
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-3 md:px-4 flex items-center justify-between shrink-0 select-none">
+        {/* Zone 1: Period Navigator & Guided Mode Toggle */}
+        <div className="flex items-center gap-2">
+          {onToggleGuidedMode && (
+            <button
+              onClick={onToggleGuidedMode}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-display font-bold transition-all shadow-xs cursor-pointer ${
+                isGuidedMode
+                  ? 'bg-amber-500 text-slate-950 shadow-amber-950/40 hover:bg-amber-400'
+                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-750'
+              }`}
+              title={isGuidedMode ? 'Basculer vers la Vue Libre / Modules' : 'Basculer vers le Parcours Guidé Pas-à-Pas'}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{isGuidedMode ? 'Parcours Guidé' : 'Vue Libre'}</span>
+            </button>
+          )}
+
           <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-md border border-slate-800">
             {periods.map(p => {
               const isActive = p === activePeriod;
@@ -95,7 +125,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <button
                   key={p}
                   onClick={() => onSelectPeriod(p)}
-                  className={`min-w-7 h-7 px-2 flex items-center justify-center text-xs font-mono font-bold rounded transition-all ${
+                  className={`min-w-6 sm:min-w-7 h-6 sm:h-7 px-1.5 sm:px-2 flex items-center justify-center text-xs font-mono font-bold rounded transition-all cursor-pointer ${
                     isActive
                       ? 'bg-indigo-600 text-white shadow-md'
                       : isLatest
@@ -215,8 +245,16 @@ export const TopBar: React.FC<TopBarProps> = ({
           )}
 
           <button
+            onClick={toggleFullscreen}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors no-print cursor-pointer"
+            title={isFullscreen ? 'Quitter le Plein Écran' : 'Passer en Plein Écran'}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-amber-400" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+
+          <button
             onClick={handlePrint}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors no-print"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors no-print cursor-pointer"
             title="Imprimer l'état financier actif"
           >
             <Printer className="w-4 h-4" />

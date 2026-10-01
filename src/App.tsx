@@ -40,6 +40,8 @@ import { api, getGameCode, setGameCode, SyncState } from './api/client';
 import { CheckCircle2, TrendingUp, AlertCircle, X, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
 import { AdvisorPanel } from './components/ui/AdvisorPanel';
 import { AdvisorRecommendation, getManagementRecommendations } from './domain/managementAdvisor';
+import { GuidedTourView } from './components/views/guided/GuidedTourView';
+import { MobileNavDock } from './components/layout/MobileNavDock';
 
 const STORAGE_KEY = 'simbiz_executive_simulation_p0_v5';
 
@@ -169,7 +171,7 @@ export default function App() {
   });
 
   // Navigation State
-  const [currentTab, setCurrentTab] = useState<MainViewTab>('recap');
+  const [currentTab, setCurrentTab] = useState<MainViewTab>('guidedTour');
   const [currentSubTab, setCurrentSubTab] = useState<ResultsSubTab>('pnl');
 
   // Transition modal state
@@ -534,6 +536,7 @@ export default function App() {
         unreadMessagesCount={unreadCount}
         companySettings={companySettings}
         onOpenCustomization={() => setIsCustomizationOpen(true)}
+        currentPeriod={currentPeriod}
       />
 
       {/* Main Content Area */}
@@ -557,10 +560,33 @@ export default function App() {
           onToggleAdvisor={() => setAdvisorOpen(value => !value)}
           onAdvisorNavigate={handleAdvisorNavigate}
           onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
+          isGuidedMode={currentTab === 'guidedTour'}
+          onToggleGuidedMode={() => setCurrentTab(currentTab === 'guidedTour' ? 'recap' : 'guidedTour')}
         />
 
         {/* View Router */}
-        <main className="app-main flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950">
+        <main className="app-main flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950 pb-14 md:pb-0">
+          {currentTab === 'guidedTour' && (
+            <GuidedTourView
+              currentPeriod={currentPeriod}
+              latestPeriod={latestPeriod}
+              snapshot={activeSnapshot}
+              prevSnapshot={prevSnapshot}
+              pendingDecisions={pendingDecisions}
+              onUpdateDecisions={handleUpdateDecisions}
+              onExecuteSimulation={handleSimulateNextPeriod}
+              companySettings={companySettings}
+              selectedFirmId={selectedFirmId}
+              validation={validation}
+              advisorRecommendations={advisorRecommendations}
+              onOpenAdvisor={() => setAdvisorOpen(true)}
+              currentCrisis={currentCrisis}
+              onSelectCrisisChoice={handleSelectCrisisChoice}
+              onGoToResultsView={() => setCurrentTab('results')}
+              onGoToMarketView={() => setCurrentTab('market')}
+            />
+          )}
+
           {currentTab === 'recap' && (
             <ExecutiveCockpitView
               snapshot={activeSnapshot}
@@ -674,6 +700,15 @@ export default function App() {
           {syncState === 'online' ? `Synchronisé · ${gameCode}` : syncState === 'offline' ? 'Hors ligne · sauvegarde locale' : 'Sauvegarde locale'}
         </div>
       </div>
+
+      {/* Mobile Bottom Dock Navigation */}
+      <MobileNavDock
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
+        onToggleAdvisor={() => setAdvisorOpen(v => !v)}
+        unreadAdvisorCount={advisorRecommendations.length}
+        unreadMessagesCount={unreadCount}
+      />
 
       {/* Company Customization Modal */}
       <CustomizationModal

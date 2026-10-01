@@ -20,12 +20,14 @@ import {
   Shield,
   Zap,
   Bot,
-  Leaf
-  ,FlaskConical
+  Leaf,
+  FlaskConical,
+  Compass,
 } from 'lucide-react';
 import { CompanySettings } from '../../types/simulation';
 
 export type MainViewTab =
+  | 'guidedTour'
   | 'recap'
   | 'legacyRecap'
   | 'results'
@@ -53,6 +55,7 @@ interface SidebarProps {
   unreadMessagesCount: number;
   companySettings?: CompanySettings;
   onOpenCustomization?: () => void;
+  currentPeriod?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -63,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   unreadMessagesCount,
   companySettings,
   onOpenCustomization,
+  currentPeriod = 0,
 }) => {
   const isResultsActive = currentTab === 'results';
   const brandColor = companySettings?.brandColor || '#6366f1';
@@ -117,6 +121,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+        {/* Parcours Guidé (Top Priority / Guided Flow) */}
+        <button
+          onClick={() => onSelectTab('guidedTour')}
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+            currentTab === 'guidedTour'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold shadow-lg shadow-amber-950/50'
+              : 'text-amber-300 bg-amber-950/30 border border-amber-800/60 hover:bg-amber-950/70 hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <Compass className={`w-4 h-4 ${currentTab === 'guidedTour' ? 'text-slate-950' : 'text-amber-400 animate-pulse'}`} />
+            <span className="font-display font-bold">Parcours Guidé P.{currentPeriod}</span>
+          </div>
+          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+            currentTab === 'guidedTour'
+              ? 'bg-slate-950 text-amber-300 border-slate-900'
+              : 'bg-amber-950 text-amber-300 border-amber-700/80'
+          }`}>
+            4 étapes
+          </span>
+        </button>
+
+        {/* Separator */}
+        <div className="pt-1 pb-1">
+          <div className="h-px bg-slate-800/60 mx-1" />
+        </div>
+
         {/* Recap */}
         <button
           onClick={() => onSelectTab('recap')}
