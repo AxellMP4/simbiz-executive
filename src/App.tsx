@@ -508,7 +508,7 @@ export default function App() {
   const currentCrisis = crises[latestPeriod + 1] || crises[1];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="app-shell flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Left Sidebar Navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -539,7 +539,7 @@ export default function App() {
         />
 
         {/* View Router */}
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950">
+        <main className="app-main flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-950">
           {currentTab === 'recap' && (
             <ExecutiveCockpitView
               snapshot={activeSnapshot}

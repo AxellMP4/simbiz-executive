@@ -37,11 +37,11 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
   const statusLabel = { draft: 'Brouillon', preview: 'Prévisualisation', validated: 'Validée', closed: 'Clôturée' }[periodStatus];
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-800 pb-5">
+    <div className="cockpit-shell flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+      <header className="cockpit-header flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-indigo-300">
-            <span className="rounded-full bg-indigo-950 border border-indigo-800 px-2 py-1 text-indigo-100">Cockpit exécutif</span>
+            <span className="eyebrow-pill rounded-full bg-indigo-950 border border-indigo-800 px-2 py-1 text-indigo-100">Cockpit exécutif</span>
             <span>Période {snapshot.period} · Réalisé</span>
           </div>
           <h1 className="mt-3 text-2xl md:text-3xl font-bold font-display text-white">Piloter {companySettings.companyName}</h1>
@@ -52,7 +52,7 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
             <span className="text-slate-500 block">Workflow P.{snapshot.period + 1}</span>
             <strong className="text-white">{statusLabel}</strong>
           </div>
-          <button onClick={onDecisions} className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-xs font-bold text-black hover:bg-amber-400">
+          <button onClick={onDecisions} className="primary-action flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-xs font-bold text-black hover:bg-amber-400">
             Préparer P.{snapshot.period + 1}<ArrowRight className="h-4 w-4" />
           </button>
         </div>
@@ -60,7 +60,7 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
 
       <section aria-label="Indicateurs clés" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {cards.map(({ label, value, delta: change, icon: Icon }) => (
-          <article key={label} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <article key={label} className="metric-card rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="flex items-center justify-between text-slate-400"><span className="text-xs">{label}</span><Icon className="h-4 w-4 text-indigo-400" /></div>
             <strong className="mt-3 block text-lg font-mono text-white">{value}</strong>
             {prior && <span className={`mt-1 flex items-center gap-1 text-[11px] font-mono ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -71,7 +71,7 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-xl border border-slate-800 bg-slate-900">
+        <section className="surface-panel rounded-xl border border-slate-800 bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3"><h2 className="font-display font-semibold text-white">Décisions à arbitrer</h2><span className="text-[11px] font-mono text-slate-500">Prévision · sans impact sur le réalisé</span></div>
           <div className="grid gap-3 p-4 md:grid-cols-3">
             <div className="rounded-lg bg-slate-950 p-3"><span className="text-xs text-slate-500">Production planifiée</span><strong className="mt-1 block font-mono text-white">{(pendingDecisions.productionA + pendingDecisions.productionB).toLocaleString('fr-FR')} unités</strong></div>
@@ -85,7 +85,7 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
           </div>
         </section>
 
-        <section className="rounded-xl border border-slate-800 bg-slate-900">
+        <section className="surface-panel rounded-xl border border-slate-800 bg-slate-900">
           <div className="border-b border-slate-800 px-4 py-3"><h2 className="font-display font-semibold text-white">Activité récente</h2></div>
           <div className="divide-y divide-slate-800/80">
             {events.slice(0, 5).map(event => <div key={event.id} className="flex gap-3 px-4 py-3"><CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-400" /><div><p className="text-xs text-slate-200">{event.message}</p><time className="text-[10px] font-mono text-slate-500">{new Date(event.at).toLocaleString('fr-FR')}</time></div></div>)}

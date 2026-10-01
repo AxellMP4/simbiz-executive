@@ -212,7 +212,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <button
             onClick={onSimulateNext}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold font-display tracking-wide transition-all shadow-md active:scale-95 no-print"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold font-display tracking-wide transition-all shadow-md active:scale-95 no-print"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>Clôturer & Simuler P.{latestPeriod + 1}</span>

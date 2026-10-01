@@ -1,43 +1,37 @@
-# SimBiz Executive — Système visuel existant
+# SimBiz Executive — Monde visuel Apple-inspired
 
-Ce document décrit l'identité visuelle déjà présente dans le projet. Il ne définit pas un nouveau produit et ne remplace pas les comportements ou la structure métier existants.
+## Direction
 
-## Direction visuelle
+SimBiz Executive est un outil de pilotage, pas une vitrine marketing : l'interface doit donner la sensation d'une salle de décision calme, précise et immédiatement lisible. Le nouveau monde visuel remplace l'ancien cockpit sombre par une surface claire inspirée des conventions iOS/macOS : toile gris très pâle, surfaces blanches translucides, séparateurs hairline, rayons généreux et profondeur portée par des ombres douces.
 
-L'interface est un **cockpit exécutif sombre** orienté opération et lecture rapide :
+## Typographie
 
-- surface principale navy/slate très sombre ;
-- cartes et panneaux à bordures fines, avec hiérarchie dense de données ;
-- navigation latérale persistante et barre supérieure de période ;
-- accent indigo pour la marque et les actions principales ;
-- emerald pour les résultats favorables, la synchronisation et les signaux de réussite ;
-- amber pour les décisions, alertes d'attention et actions de clôture ;
-- rose/rouge pour les erreurs, risques et résultats défavorables ;
-- cyan, sky et violet pour distinguer certains domaines métier et séries de données.
+La typographie système est la source d'autorité :
 
-## Typographie vérifiée
+```css
+font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+  "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+```
 
-Les fontes déclarées dans `src/index.css` sont :
+Les valeurs, mesures et codes utilisent une pile monospace système (`SF Mono`, `ui-monospace`, `Menlo`, `monospace`). Aucune police Apple propriétaire n'est importée ou embarquée.
 
-- **Outfit** pour les titres et la typographie d'affichage ;
-- **Plus Jakarta Sans** pour le texte courant ;
-- **Space Grotesk** pour certains libellés techniques ;
-- **JetBrains Mono** pour les valeurs, codes et données tabulaires.
+## Palette et matériaux
 
-Ces choix sont documentés comme identité visuelle existante ; ils ne constituent pas une recommandation de refonte.
+- **Canvas** : `#f4f6f8`, neutre et lumineux pour les longues sessions de simulation.
+- **Surface** : blanc translucide / blanc plein, avec `backdrop-filter` uniquement pour les barres et panneaux qui le justifient.
+- **Texte** : bleu-gris profond `#172033`, secondaire `#647084`, discret `#8a95a6`.
+- **Accent** : bleu retenu `#1769e0` et son fond doux `#e8f0ff`.
+- **Sémantique** : vert `#16805d`, orange `#ad6900`, rouge `#c0394b`; les états gardent toujours un libellé ou une icône en plus de la couleur.
+- **Profondeur** : `--shadow-sm` pour les panneaux et `--shadow-md` pour les éléments de premier plan, sans halos colorés.
 
-## Principes d'interface observés
+## Composition et composants
 
-- Priorité à la scanabilité : KPI, tableaux, badges de statut et valeurs alignées.
-- Les données chiffrées utilisent des unités et le format français.
-- La période active et la période clôturée sont visibles dans la barre supérieure.
-- Les actions importantes sont explicites : préparer les décisions, prévisualiser, valider et clôturer.
-- Les états favorables/défavorables combinent couleur, texte, icônes ou libellés ; la couleur ne doit pas être l'unique signal.
-- La navigation regroupe les surfaces par fonctions existantes : cockpit, états financiers, décisions, conseil/R&D, RH, marché, messagerie, outils et documentation.
-- Le layout s'adapte aux petits écrans en réduisant la barre latérale et en conservant les contrôles essentiels.
-- Les états de synchronisation hors ligne/en ligne sont exposés par un badge persistant.
-- L'impression navigateur est prise en compte par des règles `@media print`.
+- La barre latérale translucide reste persistante sur desktop et devient une rail d'icônes compacte sur téléphone.
+- La barre supérieure conserve les périodes, KPI, alertes et actions de simulation, dans une surface légère et séparée par une hairline.
+- Les sections de cockpit utilisent de grands rayons de 20px, des groupes respirants et des valeurs alignées pour préserver la densité exécutive.
+- Les décisions, résultats et tableaux conservent leurs contrôles et libellés français; le système visuel leur apporte uniquement hiérarchie, contrastes et états plus calmes.
+- Les contrôles primaires sont bleus, les sélecteurs de période et filtres suivent une logique segmentée/pill, et le focus clavier est visible.
 
-## Contraintes de conservation
+## Responsive et accessibilité
 
-Toute évolution visuelle doit préserver les libellés français, les flux de simulation, les rapports existants, la distinction prévision/réalisé, la lisibilité des unités et l'accessibilité clavier/focus. Une éventuelle refonte doit être demandée explicitement ; ce fichier ne l'autorise pas.
+La navigation se compacte à 68px sous 768px, le contenu devient mono-colonne, les surfaces restent scrollables horizontalement lorsque les tableaux l'exigent, et les contrôles tactiles gardent une hauteur minimale de 40–44px. Les contrastes dépassent 4.5:1 pour le texte courant, `:focus-visible` est explicite et `prefers-reduced-motion` désactive les mouvements non essentiels.
