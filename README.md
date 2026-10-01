@@ -25,29 +25,29 @@ npm start
 
 ## API et synchronisation
 
-L'API Express expose `GET /api/health`, `POST /api/games`, `GET /api/games/:code`, `PUT /api/games/:code`, `POST /api/games/:code/turn` (réservé pour un calcul serveur ultérieur) et `GET /api/leaderboard`. Le client utilise `VITE_API_URL` en production et le proxy Vite `/api` en développement.
+L'API partagée expose `GET /api/health`, `POST /api/games`, `GET /api/games/:code`, `PUT /api/games/:code`, `POST /api/games/:code/turn` (réservé pour un calcul serveur ultérieur) et `GET /api/leaderboard`. En local, ces routes sont servies par Express sur `http://localhost:8787` et Vite les relaie via `/api`. Sur Netlify, elles sont servies par `netlify/functions/api.ts` et le redirect `/api/*` est same-origin. `VITE_API_URL` peut rester vide dans la configuration Netlify.
 
 Le client crée un identifiant d'appareil et un code de partie invité à 8 caractères, puis synchronise automatiquement l'état. Le code est un lien de reprise pratique, pas une authentification sécurisée : ne pas y stocker de données personnelles. En cas de réseau absent, l'état continue de fonctionner dans `localStorage` et le badge indique « Hors ligne ».
 
 ## Persistance et limite de production
 
-Le prototype utilise un fichier JSON (`SIMBIZ_DATA_DIR/games.json`) avec écriture atomique. Ce stockage n'est pas durable sur un hébergement éphémère : il peut être perdu à chaque redéploiement ou redémarrage. Le manifeste Render monte donc un disque persistant sur `/var/data` (offre payante requise). Pour une production multi-instance ou une exigence de durabilité forte, implémenter un repository PostgreSQL/Supabase derrière le même contrat de routes avant de renseigner `DATABASE_URL`. L'API refuse actuellement `DATABASE_URL` tant que cet adaptateur n'existe pas, afin de ne pas donner une fausse garantie de durabilité.
+L'Express local utilise un fichier JSON (`SIMBIZ_DATA_DIR/games.json`) avec écriture atomique. Les Netlify Functions utilisent volontairement un store mémoire par instance chaude : le système de fichiers des Functions est éphémère et les instances peuvent être remplacées ou multipliées. Les parties invitées peuvent donc disparaître après un cold start, un déploiement ou une autre instance ; l'application conserve toujours une sauvegarde `localStorage` et son mode hors ligne. Le code ne prétend pas fournir une persistance durable ou une synchronisation cross-device garantie sans ajouter un fournisseur externe (par exemple Supabase) et ses identifiants.
 
-## Déployer depuis GitHub
+## Déployer gratuitement sur Netlify
 
-Les actions de compte, de facturation, de création de domaine et de configuration DNS doivent être réalisées par le propriétaire du projet. Aucun compte externe ni domaine n'est créé par ce dépôt.
+Les actions de compte, de facturation, de création de domaine et de configuration DNS doivent être réalisées par le propriétaire du projet. Aucun compte externe n'est créé par ce dépôt.
 
-1. **Publier le dépôt** : pousser ce projet sur GitHub, en conservant `netlify.toml`, `render.yaml` et `.env.example`.
-2. **Créer l'API Render** : dans Render, `New > Blueprint`, sélectionner le dépôt GitHub et appliquer `render.yaml`. Vérifier que le service `simbiz-api` est créé avec son disque persistant. Renseigner `CORS_ORIGIN` avec l'URL Netlify finale (elle peut être mise à jour après l'étape 3). Ne pas renseigner `DATABASE_URL` avec la configuration actuelle.
-3. **Vérifier l'API** : ouvrir `https://<service>.onrender.com/api/health` et vérifier `ok: true` et `storage: "filesystem"`.
-4. **Créer le frontend Netlify** : `Add new site > Import an existing project > GitHub`, sélectionner le dépôt. Netlify détecte `netlify.toml` (`npm run build`, dossier `dist`). Ajouter `VITE_API_URL=https://<service>.onrender.com/api` dans `Site configuration > Environment variables`, puis redéployer.
-5. **Relier CORS** : remplacer `CORS_ORIGIN` dans Render par l'URL Netlify publique exacte, sans slash final, puis redéployer l'API. Pour un domaine personnalisé, utiliser ce domaine comme origine finale.
-6. **Tester** : créer et recharger une partie depuis l'URL Netlify, puis vérifier `/api/health`, le chargement cross-origin et `GET /api/leaderboard`.
+1. Pousser le dépôt sur GitHub puis, dans Netlify, choisir `Add new site > Import an existing project > GitHub`.
+2. Conserver les réglages détectés depuis `netlify.toml` : `npm run build`, publication `dist`, Functions dans `netlify/functions`, Node.js 20.
+3. Ne pas renseigner `VITE_API_URL` (ou le laisser vide) : le frontend appelle `/api` sur le même domaine. `CORS_ORIGIN` est également inutile pour ce mode same-origin.
+4. Déployer puis vérifier `https://<site>.netlify.app/api/health`, la création/reprise d'une partie et `GET /api/leaderboard`.
+
+Le plan gratuit Netlify suffit pour le frontend et les Functions dans leurs quotas publics, mais il ne transforme pas le store mémoire en base de données. Pour une persistance durable multi-appareils, brancher ultérieurement un fournisseur externe gratuit derrière `server/api.ts` sans exposer de clé dans le frontend.
 
 ## Domaine personnalisé et DNS
 
-Dans Netlify, `Domain management > Add a domain`, ajouter le domaine acheté par le propriétaire et suivre la validation. Chez le registrar, créer les enregistrements indiqués par Netlify : généralement un `CNAME` pour `www` vers le nom Netlify fourni et, pour le domaine racine, les enregistrements apex/ALIAS ou les adresses A recommandées par Netlify. Supprimer les anciens enregistrements contradictoires, attendre la propagation DNS, puis activer HTTPS dans Netlify. Enfin, mettre à jour `CORS_ORIGIN` dans Render et `VITE_API_URL` dans Netlify si l'URL de l'API change, puis redéployer les deux services.
+Dans Netlify, `Domain management > Add a domain`, ajouter le domaine acheté par le propriétaire et suivre la validation. Chez le registrar, créer les enregistrements indiqués par Netlify puis activer HTTPS. Le mode same-origin continue de fonctionner sans changement de CORS.
 
 ## Variables d'environnement
 
-Copier `.env.example` pour connaître les variables attendues. `VITE_API_URL` est une variable publique injectée au build frontend ; `CORS_ORIGIN`, `SIMBIZ_DATA_DIR`, `SIMBIZ_STORAGE_MODE` et `DATABASE_URL` sont des variables backend. Les secrets ne doivent pas être commités.
+Copier `.env.example` pour connaître les variables attendues. `VITE_API_URL` est une variable publique injectée au build frontend ; `CORS_ORIGIN` et `SIMBIZ_STORAGE_MODE` sont des variables des Functions ; `SIMBIZ_DATA_DIR` ne concerne que l'Express local. Les secrets ne doivent pas être commités.
