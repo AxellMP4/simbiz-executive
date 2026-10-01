@@ -8,3 +8,6 @@ coverage/
 !.env.example
 server/data/*.json
 dist-server/
+
+# Local Netlify folder
+.netlify
