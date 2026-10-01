@@ -1,5 +1,6 @@
 import { FirmDecisions, FirmPeriodResult, PeriodSnapshot } from '../types/simulation';
 import { simulateNextPeriod } from '../engine/simulationEngine';
+import { FinancialMarketState } from './financialMarket';
 
 export type PeriodStatus = 'draft' | 'preview' | 'validated' | 'closed';
 
@@ -37,6 +38,7 @@ export interface BackupState {
   techPatents?: unknown[];
   events?: DecisionEvent[];
   periodStatus?: PeriodStatus;
+  financialMarketState?: FinancialMarketState;
 }
 
 export const validateBackupState = (input: unknown): BackupState => {

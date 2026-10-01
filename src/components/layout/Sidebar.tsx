@@ -8,6 +8,7 @@ import {
   Wrench,
   Users2,
   TrendingUp,
+  LineChart,
   FileText,
   Factory,
   Scale,
@@ -33,6 +34,7 @@ export type MainViewTab =
   | 'results'
   | 'hr'
   | 'market'
+  | 'financialMarket'
   | 'decisions'
   | 'board'
   | 'messaging'
@@ -342,6 +344,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="font-display">Analyses de Marché</span>
           </div>
           <span className="text-[10px] font-mono text-slate-400">Élasticité</span>
+        </button>
+
+        <button
+          onClick={() => onSelectTab('financialMarket')}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            currentTab === 'financialMarket'
+              ? 'bg-emerald-600 text-white font-semibold shadow-md shadow-emerald-950'
+              : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <LineChart className="w-4 h-4 text-emerald-400" />
+            <span className="font-display">Marchés financiers</span>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400">SIMBIX</span>
         </button>
 
         <div className="pt-2 border-t border-slate-800/60 my-2" />

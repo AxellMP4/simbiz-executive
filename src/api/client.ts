@@ -1,4 +1,5 @@
 import { CompanySettings, FirmDecisions, PeriodSnapshot } from '../types/simulation';
+import { FinancialMarketState } from '../domain/financialMarket';
 
 export type SyncState = 'local' | 'online' | 'offline';
 export interface GameState {
@@ -15,6 +16,7 @@ export interface GameState {
   techPatents?: unknown[];
   events?: unknown[];
   periodStatus?: string;
+  financialMarketState?: FinancialMarketState;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');

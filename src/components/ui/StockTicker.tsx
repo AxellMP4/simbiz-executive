@@ -105,6 +105,10 @@ export const StockTicker: React.FC<StockTickerProps> = ({
     }, 0);
     return totalChange / tickerList.length;
   }, [tickerList]);
+  const marketIndex = useMemo(() => {
+    if (tickerList.length === 0) return 0;
+    return tickerList.reduce((total, ticker) => total + ticker.basePrice, 0) / tickerList.length * 50;
+  }, [tickerList]);
 
   // Check if any firm has high volatility (>= 15%)
   const volatileFirms = useMemo(() => {
@@ -142,7 +146,7 @@ export const StockTicker: React.FC<StockTickerProps> = ({
       {/* Market Composite Index Pill */}
       <div className="hidden md:flex items-center gap-2 px-3 py-0.5 bg-slate-900/60 border-r border-slate-800/80 shrink-0 z-10 text-[11px]">
         <span className="text-slate-400 font-semibold font-tech">SIMBIX-6</span>
-        <span className="font-bold text-white">2 485,30 pts</span>
+        <span className="font-bold text-white">{marketIndex.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pts</span>
         <span className={`flex items-center text-[10px] font-bold ${averageChangePct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
           {averageChangePct >= 0 ? (
             <TrendingUp className="w-3 h-3 mr-0.5" />
@@ -156,7 +160,7 @@ export const StockTicker: React.FC<StockTickerProps> = ({
 
       {/* Infinite Scrolling Ticker Track */}
       <div className="flex-1 overflow-hidden relative h-full flex items-center">
-        <div className="animate-ticker items-center flex gap-6 px-4">
+        <div className="animate-ticker items-center flex gap-6 px-4" tabIndex={0} aria-label="Cours boursiers défilants">
           {/* Render 2 sets for continuous seamless 360 loop */}
           {[1, 2].map(iteration => (
             <React.Fragment key={iteration}>

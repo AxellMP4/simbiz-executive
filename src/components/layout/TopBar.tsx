@@ -3,7 +3,6 @@ import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, 
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { StockTicker } from '../ui/StockTicker';
 import { VolatilityModal } from '../ui/VolatilityModal';
-import { AdvisorPanel } from '../ui/AdvisorPanel';
 import { AdvisorRecommendation } from '../../domain/managementAdvisor';
 
 interface TopBarProps {
@@ -99,15 +98,15 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <div className="shrink-0 flex flex-col z-10 shadow-sm">
       {/* Top Main Navigation Row */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-3 md:px-4 flex items-center justify-between shrink-0 select-none">
+      <header className="min-h-14 h-auto bg-slate-900 border-b border-slate-800 px-3 md:px-4 py-2 flex items-center justify-between gap-2 flex-wrap shrink-0 select-none">
         {/* Zone 1: Period Navigator & Guided Mode Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {onToggleGuidedMode && (
             <button
               onClick={onToggleGuidedMode}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-display font-bold transition-all shadow-xs cursor-pointer ${
                 isGuidedMode
-                  ? 'bg-amber-500 text-slate-950 shadow-amber-950/40 hover:bg-amber-400'
+                  ? 'bg-amber-500 text-black shadow-amber-950/40 hover:bg-amber-400'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-750'
               }`}
               title={isGuidedMode ? 'Basculer vers la Vue Libre / Modules' : 'Basculer vers le Parcours Guidé Pas-à-Pas'}
@@ -212,14 +211,28 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Zone 3: Actions */}
         <div className="flex items-center gap-2">
-          <AdvisorPanel
-            recommendations={advisorRecommendations}
-            open={advisorOpen}
-            compact
-            onToggle={onToggleAdvisor}
-            onNavigate={onAdvisorNavigate}
-            onDismiss={onDismissAdvisor}
-          />
+          {/* Advisor Drawer Toggle Button (replaces old inline AdvisorPanel) */}
+          <button
+            onClick={onToggleAdvisor}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-display font-bold transition-all cursor-pointer no-print ${
+              advisorRecommendations.some(r => r.critical)
+                ? 'bg-rose-950/80 border border-rose-500/60 text-rose-300 hover:bg-rose-900 glow-rose'
+                : advisorRecommendations.length > 0
+                ? 'bg-purple-950/80 border border-purple-500/60 text-purple-300 hover:bg-purple-900 glow-purple'
+                : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
+            }`}
+            title="Ouvrir le Conseiller Stratégique"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Conseiller</span>
+            {advisorRecommendations.length > 0 && (
+              <span className={`min-w-[1.1rem] px-1 py-0.5 rounded-full text-[10px] font-mono font-bold text-center ${
+                advisorRecommendations.some(r => r.critical) ? 'bg-rose-500 text-white' : 'bg-purple-500 text-white'
+              }`}>
+                {advisorRecommendations.length}
+              </span>
+            )}
+          </button>
           {/* General Market Volatility Pill if other competitors are volatile and selected firm is not already showing it */}
           {anyFirmVolatile && !isSelectedFirmVolatile && (
             <button

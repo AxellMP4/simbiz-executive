@@ -38,10 +38,12 @@ import { CustomizationModal } from './components/ui/CustomizationModal';
 import { CompanyLabView } from './components/views/CompanyLabView';
 import { api, getGameCode, setGameCode, SyncState } from './api/client';
 import { CheckCircle2, TrendingUp, AlertCircle, X, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
-import { AdvisorPanel } from './components/ui/AdvisorPanel';
+import { AdvisorDrawer } from './components/ui/AdvisorDrawer';
 import { AdvisorRecommendation, getManagementRecommendations } from './domain/managementAdvisor';
 import { GuidedTourView } from './components/views/guided/GuidedTourView';
 import { MobileNavDock } from './components/layout/MobileNavDock';
+import { FinancialMarketView } from './components/views/FinancialMarketView';
+import { createFinancialMarketState, evolveFinancialMarket, FinancialMarketState } from './domain/financialMarket';
 
 const STORAGE_KEY = 'simbiz_executive_simulation_p0_v5';
 
@@ -140,6 +142,16 @@ export default function App() {
   const [events, setEvents] = useState<DecisionEvent[]>([]);
   const [advisorOpen, setAdvisorOpen] = useState(false);
   const [dismissedAdvisorIds, setDismissedAdvisorIds] = useState<string[]>([]);
+  const [financialMarketState, setFinancialMarketState] = useState<FinancialMarketState>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (parsed?.financialMarketState?.cash !== undefined) return parsed.financialMarketState;
+    } catch (e) {
+      console.error('Failed to load financial market state:', e);
+    }
+    return createFinancialMarketState(snapshots[0]);
+  });
 
   const showToast = (title: string, message: string, type: 'success' | 'warning' | 'info' = 'info') => {
     setToast({ title, message, type });
@@ -199,12 +211,17 @@ export default function App() {
           techPatents,
           events,
           periodStatus,
+          financialMarketState,
         })
       );
     } catch (e) {
       console.error('Failed to save simulation to localStorage:', e);
     }
-  }, [snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus]);
+  }, [snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus, financialMarketState]);
+
+  useEffect(() => {
+    setFinancialMarketState(prev => evolveFinancialMarket(prev, snapshots[latestPeriod] || snapshots[0]));
+  }, [latestPeriod, snapshots]);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,10 +242,11 @@ export default function App() {
             setTechPatents((remote.state.techPatents as TechPatent[] | undefined) || TECH_PATENTS);
             setEvents((remote.state.events as DecisionEvent[] | undefined) || []);
             setPeriodStatus((remote.state.periodStatus as PeriodStatus | undefined) || 'draft');
+            if (remote.state.financialMarketState) setFinancialMarketState(remote.state.financialMarketState as FinancialMarketState);
             setSyncState('online');
           }
         } else {
-          const created = await api.createGame({ snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus });
+          const created = await api.createGame({ snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus, financialMarketState });
           if (!cancelled) {
             setGameCode(created.gameCode);
             setGameCodeState(created.gameCode);
@@ -249,14 +267,14 @@ export default function App() {
     if (!syncReady || !gameCode) return;
     const timer = window.setTimeout(async () => {
       try {
-        await api.saveGame(gameCode, { gameCode, deviceId: '', snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus });
+        await api.saveGame(gameCode, { gameCode, deviceId: '', snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus, financialMarketState });
         setSyncState('online');
       } catch {
         setSyncState('offline');
       }
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [syncReady, gameCode, snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus]);
+  }, [syncReady, gameCode, snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus, financialMarketState]);
 
   const validation = validateDecisions(
     pendingDecisions,
@@ -463,6 +481,7 @@ export default function App() {
     setCurrentTab('recap');
     setPreviewResult(undefined);
     setPeriodStatus('draft');
+    setFinancialMarketState(createFinancialMarketState(freshSnapshots[0]));
     setEvents([{ id: 'period-opened-0', type: 'period_opened', period: 0, at: new Date().toISOString(), message: 'Simulation initialisée sur la période 0.' }]);
     setConfirmResetOpen(false);
     showToast("Simulation Réinitialisée", "Retour à la Période 0 (P0) effectué avec succès.", "info");
@@ -477,7 +496,7 @@ export default function App() {
   };
 
   const handleExportState = () => {
-    const state = { snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus };
+    const state = { snapshots, pendingDecisions, messages, latestPeriod, currentPeriod, companySettings, objectives, crises, techPatents, events, periodStatus, financialMarketState };
     const anchor = document.createElement('a');
     anchor.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(state, null, 2))}`;
     anchor.download = `simbiz-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
@@ -498,6 +517,7 @@ export default function App() {
       if (parsed.techPatents) setTechPatents(parsed.techPatents as TechPatent[]);
       setEvents((parsed.events as DecisionEvent[] | undefined) || []);
       setPeriodStatus(parsed.periodStatus || 'draft');
+      if (parsed.financialMarketState) setFinancialMarketState(parsed.financialMarketState as FinancialMarketState);
       showToast('Sauvegarde restaurée', 'L’état complet de la simulation a été importé.', 'success');
     } catch (error) {
       showToast('Import impossible', error instanceof Error ? error.message : 'Fichier JSON illisible.', 'warning');
@@ -570,6 +590,7 @@ export default function App() {
             <GuidedTourView
               currentPeriod={currentPeriod}
               latestPeriod={latestPeriod}
+              allSnapshots={snapshots}
               snapshot={activeSnapshot}
               prevSnapshot={prevSnapshot}
               pendingDecisions={pendingDecisions}
@@ -584,6 +605,17 @@ export default function App() {
               onSelectCrisisChoice={handleSelectCrisisChoice}
               onGoToResultsView={() => setCurrentTab('results')}
               onGoToMarketView={() => setCurrentTab('market')}
+            />
+          )}
+
+          {currentTab === 'financialMarket' && (
+            <FinancialMarketView
+              snapshot={activeSnapshot}
+              previousSnapshot={prevSnapshot}
+              state={financialMarketState}
+              companySettings={companySettings}
+              onStateChange={setFinancialMarketState}
+              onSelectFirm={setSelectedFirmId}
             />
           )}
 
@@ -708,6 +740,15 @@ export default function App() {
         onToggleAdvisor={() => setAdvisorOpen(v => !v)}
         unreadAdvisorCount={advisorRecommendations.length}
         unreadMessagesCount={unreadCount}
+      />
+
+      {/* Advisor Slide-Over Drawer */}
+      <AdvisorDrawer
+        open={advisorOpen}
+        onClose={() => setAdvisorOpen(false)}
+        recommendations={advisorRecommendations}
+        onNavigate={handleAdvisorNavigate}
+        onDismiss={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
       />
 
       {/* Company Customization Modal */}

@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   SlidersHorizontal,
   FileSpreadsheet,
+  LineChart,
   Sparkles,
   Maximize2,
   Minimize2
@@ -79,6 +80,18 @@ export const MobileNavDock: React.FC<MobileNavDockProps> = ({
       >
         <FileSpreadsheet className="w-5 h-5" />
         <span className="text-[10px] font-display mt-0.5">États</span>
+      </button>
+
+      <button
+        onClick={() => onSelectTab('financialMarket')}
+        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          currentTab === 'financialMarket'
+            ? 'text-emerald-400 font-bold bg-emerald-950/40'
+            : 'text-slate-400 hover:text-slate-200'
+        }`}
+      >
+        <LineChart className="w-5 h-5" />
+        <span className="text-[10px] font-display mt-0.5">Marchés</span>
       </button>
 
       {/* Conseiller */}

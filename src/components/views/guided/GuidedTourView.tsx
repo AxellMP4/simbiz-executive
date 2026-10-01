@@ -26,6 +26,7 @@ export type GuidedStep = 'analysis' | 'decisions' | 'simulation' | 'debriefing';
 interface GuidedTourViewProps {
   currentPeriod: number;
   latestPeriod: number;
+  allSnapshots?: Record<number, PeriodSnapshot>;
   snapshot: PeriodSnapshot;
   prevSnapshot?: PeriodSnapshot;
   pendingDecisions: FirmDecisions;
@@ -45,6 +46,7 @@ interface GuidedTourViewProps {
 export const GuidedTourView: React.FC<GuidedTourViewProps> = ({
   currentPeriod,
   latestPeriod,
+  allSnapshots,
   snapshot,
   prevSnapshot,
   pendingDecisions,
@@ -178,6 +180,8 @@ export const GuidedTourView: React.FC<GuidedTourViewProps> = ({
             onStartNextPeriodTour={handleStartNextPeriodTour}
             onGoToResultsView={onGoToResultsView}
             onGoToMarketView={onGoToMarketView}
+            allSnapshots={allSnapshots || { [snapshot.period]: snapshot }}
+            currentPeriod={currentPeriod}
           />
         )}
       </div>
