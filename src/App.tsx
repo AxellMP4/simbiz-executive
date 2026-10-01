@@ -21,7 +21,7 @@ import {
   TECH_PATENTS
 } from './data/customizationData';
 import { simulateNextPeriod } from './engine/simulationEngine';
-import { commitPeriod, createPreview, DecisionEvent, PeriodStatus, validateDecisions } from './domain/simulationLifecycle';
+import { commitPeriod, createPreview, DecisionEvent, PeriodStatus, validateBackupState, validateDecisions } from './domain/simulationLifecycle';
 import { Sidebar, MainViewTab, ResultsSubTab } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
 import { RecapView } from './components/views/RecapView';
@@ -214,10 +214,15 @@ export default function App() {
             setCompanySettings(remote.state.companySettings);
             setPendingDecisions(remote.state.pendingDecisions);
             setMessages(remote.state.messages as SystemMessage[]);
+            setObjectives((remote.state.objectives as StrategicObjective[] | undefined) || INITIAL_OBJECTIVES);
+            setCrises((remote.state.crises as Record<number, CrisisEvent> | undefined) || CRISIS_SCENARIOS);
+            setTechPatents((remote.state.techPatents as TechPatent[] | undefined) || TECH_PATENTS);
+            setEvents((remote.state.events as DecisionEvent[] | undefined) || []);
+            setPeriodStatus((remote.state.periodStatus as PeriodStatus | undefined) || 'draft');
             setSyncState('online');
           }
         } else {
-          const created = await api.createGame({ snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages });
+          const created = await api.createGame({ snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus });
           if (!cancelled) {
             setGameCode(created.gameCode);
             setGameCodeState(created.gameCode);
@@ -238,14 +243,14 @@ export default function App() {
     if (!syncReady || !gameCode) return;
     const timer = window.setTimeout(async () => {
       try {
-        await api.saveGame(gameCode, { gameCode, deviceId: '', snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages });
+        await api.saveGame(gameCode, { gameCode, deviceId: '', snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus });
         setSyncState('online');
       } catch {
         setSyncState('offline');
       }
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [syncReady, gameCode, snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages]);
+  }, [syncReady, gameCode, snapshots, currentPeriod, latestPeriod, companySettings, pendingDecisions, messages, objectives, crises, techPatents, events, periodStatus]);
 
   const validation = validateDecisions(
     pendingDecisions,
@@ -475,18 +480,17 @@ export default function App() {
 
   const handleImportState = async (file: File) => {
     try {
-      const parsed = JSON.parse(await file.text());
-      if (!parsed.snapshots || !parsed.pendingDecisions || typeof parsed.currentPeriod !== 'number') throw new Error('Format de sauvegarde invalide.');
+      const parsed = validateBackupState(JSON.parse(await file.text()));
       setSnapshots(parsed.snapshots);
       setPendingDecisions(parsed.pendingDecisions);
-      setMessages(parsed.messages || []);
-      setLatestPeriod(parsed.latestPeriod ?? parsed.currentPeriod);
+      setMessages((parsed.messages as SystemMessage[] | undefined) || []);
+      setLatestPeriod(parsed.latestPeriod);
       setCurrentPeriod(parsed.currentPeriod);
-      if (parsed.companySettings) setCompanySettings(parsed.companySettings);
-      if (parsed.objectives) setObjectives(parsed.objectives);
-      if (parsed.crises) setCrises(parsed.crises);
-      if (parsed.techPatents) setTechPatents(parsed.techPatents);
-      setEvents(parsed.events || []);
+      if (parsed.companySettings) setCompanySettings(parsed.companySettings as CompanySettings);
+      if (parsed.objectives) setObjectives(parsed.objectives as StrategicObjective[]);
+      if (parsed.crises) setCrises(parsed.crises as Record<number, CrisisEvent>);
+      if (parsed.techPatents) setTechPatents(parsed.techPatents as TechPatent[]);
+      setEvents((parsed.events as DecisionEvent[] | undefined) || []);
       setPeriodStatus(parsed.periodStatus || 'draft');
       showToast('Sauvegarde restaurée', 'L’état complet de la simulation a été importé.', 'success');
     } catch (error) {
@@ -634,6 +638,7 @@ export default function App() {
               onResetToP0={() => setConfirmResetOpen(true)}
               onExportState={handleExportState}
               onImportState={handleImportState}
+              allSnapshots={snapshots}
             />
           )}
 

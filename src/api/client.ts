@@ -10,6 +10,11 @@ export interface GameState {
   companySettings: CompanySettings;
   pendingDecisions: FirmDecisions;
   messages: unknown[];
+  objectives?: unknown[];
+  crises?: Record<number, unknown>;
+  techPatents?: unknown[];
+  events?: unknown[];
+  periodStatus?: string;
 }
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');

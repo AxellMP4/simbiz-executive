@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PeriodSnapshot } from '../../types/simulation';
+import { toCsv } from '../../domain/simulationLifecycle';
 import { Calculator, Download, RefreshCw, BarChart2, DollarSign, Sliders } from 'lucide-react';
 
 interface ToolsViewProps {
@@ -9,6 +10,7 @@ interface ToolsViewProps {
   selectedFirmId: string;
   onExportState?: () => void;
   onImportState?: (file: File) => void;
+  allSnapshots?: Record<number, PeriodSnapshot>;
 }
 
 export const ToolsView: React.FC<ToolsViewProps> = ({
@@ -18,6 +20,7 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
   selectedFirmId,
   onExportState,
   onImportState,
+  allSnapshots,
 }) => {
   const firmResult = snapshot.firmsResults[selectedFirmId] || snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
 
@@ -48,6 +51,27 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
     downloadAnchor.remove();
   };
 
+  const handleExportCsv = () => {
+    const rows = Object.values(allSnapshots || { [snapshot.period]: snapshot })
+      .sort((a, b) => a.period - b.period)
+      .map(periodSnapshot => {
+        const result = periodSnapshot.firmsResults[selectedFirmId] || periodSnapshot.firmsResults['1'] || Object.values(periodSnapshot.firmsResults)[0];
+        return {
+          periode: periodSnapshot.period,
+          chiffre_affaires: result?.incomeStatement.revenue || 0,
+          marge_brute: result?.incomeStatement.grossMargin || 0,
+          resultat_net: result?.incomeStatement.netProfit || 0,
+          tresorerie: result?.cashFlow.closingCash || 0,
+          dette: (result?.balanceSheet.liabilities.mortgageLoan || 0) + (result?.balanceSheet.liabilities.otherLoans || 0) + (result?.balanceSheet.liabilities.bankOverdraft || 0),
+          effectif: result?.hrReport.workforce.totalEmployees || 0,
+        };
+      });
+    const anchor = document.createElement('a');
+    anchor.href = `data:text/csv;charset=utf-8,${encodeURIComponent(toCsv(rows))}`;
+    anchor.download = `simbiz-rapport-${selectedFirmId}.csv`;
+    anchor.click();
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {/* Title */}
@@ -70,6 +94,8 @@ export const ToolsView: React.FC<ToolsViewProps> = ({
           <p className="text-xs text-slate-400">Exportez ou restaurez les décisions, résultats, objectifs, messages et journal d’activité. Le fichier ne contient aucun secret.</p>
           <div className="flex flex-wrap gap-2">
             <button onClick={onExportState} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500">Exporter l’état JSON</button>
+            <button onClick={handleExportCsv} className="rounded-lg border border-emerald-700 bg-emerald-950/50 px-3 py-2 text-xs font-semibold text-emerald-200 hover:bg-emerald-900">Exporter le rapport CSV</button>
+            <button onClick={() => window.print()} className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">Imprimer / PDF</button>
             <label className="cursor-pointer rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
               Importer un état JSON
               <input type="file" accept="application/json" className="sr-only" onChange={e => e.target.files?.[0] && onImportState?.(e.target.files[0])} />

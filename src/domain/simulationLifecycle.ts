@@ -25,6 +25,57 @@ export interface PeriodLifecycle {
   closedAt?: string;
 }
 
+export interface BackupState {
+  snapshots: Record<number, PeriodSnapshot>;
+  pendingDecisions: FirmDecisions;
+  currentPeriod: number;
+  latestPeriod: number;
+  companySettings: unknown;
+  messages: unknown[];
+  objectives?: unknown[];
+  crises?: Record<number, unknown>;
+  techPatents?: unknown[];
+  events?: DecisionEvent[];
+  periodStatus?: PeriodStatus;
+}
+
+export const validateBackupState = (input: unknown): BackupState => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new Error('Le fichier ne contient pas un état de simulation.');
+  }
+  const state = input as Partial<BackupState>;
+  if (!state.snapshots || typeof state.snapshots !== 'object' || Array.isArray(state.snapshots)) {
+    throw new Error('La sauvegarde ne contient pas de périodes valides.');
+  }
+  if (!state.pendingDecisions || typeof state.pendingDecisions !== 'object') {
+    throw new Error('La sauvegarde ne contient pas de décisions en brouillon.');
+  }
+  const currentPeriod = state.currentPeriod;
+  const latestPeriod = state.latestPeriod;
+  if (typeof currentPeriod !== 'number' || typeof latestPeriod !== 'number' || !Number.isInteger(currentPeriod) || !Number.isInteger(latestPeriod) || currentPeriod < 0 || latestPeriod < 0) {
+    throw new Error('Les périodes de la sauvegarde sont invalides.');
+  }
+  if (currentPeriod > latestPeriod || !state.snapshots[latestPeriod]) {
+    throw new Error('La période active ne correspond pas aux résultats sauvegardés.');
+  }
+  if (state.periodStatus && !['draft', 'preview', 'validated', 'closed'].includes(state.periodStatus)) {
+    throw new Error('Le statut de période est invalide.');
+  }
+  if (state.events && !Array.isArray(state.events)) throw new Error('Le journal d’activité est invalide.');
+  return state as BackupState;
+};
+
+export const csvEscape = (value: unknown): string => {
+  const text = value === null || value === undefined ? '' : String(value);
+  return /[;"\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+export const toCsv = (rows: Array<Record<string, unknown>>): string => {
+  if (rows.length === 0) return '';
+  const headers = Object.keys(rows[0]);
+  return `\ufeff${headers.map(csvEscape).join(';')}\n${rows.map(row => headers.map(header => csvEscape(row[header])).join(';')).join('\n')}\n`;
+};
+
 export const validateDecisions = (
   decisions: FirmDecisions,
   current: FirmPeriodResult | undefined,
