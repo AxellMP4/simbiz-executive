@@ -2,19 +2,26 @@ import Foundation
 
 struct SimulationEngine {
     static func simulate(period: Int, current: Metrics, decisions: Decisions) -> PeriodSnapshot {
-        let demandFactor = 1.0 + Double((period * 17) % 7) / 100
-        let sold = min(decisions.production + current.inventory, Int(4_250 * demandFactor))
-        let revenue = Double(sold) * decisions.price
-        let variableCost = Double(decisions.production) * 47
-        let operatingCost = decisions.marketing + decisions.training + Double(max(0, decisions.hiring)) * 4_200
-        let profit = revenue - variableCost - operatingCost
-        let cash = current.cash + profit - Double(max(0, decisions.hiring)) * 2_000
+        let crisisFactor = decisions.crisisChoice == "offensive" ? 1.06 : decisions.crisisChoice == "saving" ? 0.94 : 1.0
+        let demandFactor = (1.0 + Double((period * 17) % 7) / 100 + min(decisions.marketing / 100_000, 0.16)) * crisisFactor
+        let sold = min(decisions.production + current.inventory, Int(4_250 * demandFactor) + decisions.salesPeople * 90)
+        let revenue = Double(sold) * decisions.price + Double(decisions.salesPeople) * decisions.exportPrice * 180
+        let variableCost = Double(decisions.production) * (47 - min(decisions.rndBudget / 20_000, 4))
+        let operatingCost = decisions.marketing + decisions.training + decisions.rndBudget + decisions.qualityBudget + Double(max(0, decisions.hiring)) * 4_200 + Double(decisions.salesPeople) * 3_800
+        let interest = currentDebt(current: current) * 0.012
+        let profit = revenue - variableCost - operatingCost - interest + decisions.loan
+        let cash = current.cash + profit - Double(max(0, decisions.hiring)) * 2_000 - decisions.dividend
         let margin = revenue > 0 ? profit / revenue : 0
         let inventory = max(0, current.inventory + decisions.production - sold)
         let outflow = max(1, variableCost + operatingCost)
-        let metrics = Metrics(revenue: revenue, profit: profit, cash: cash, margin: margin, inventory: inventory, employees: current.employees + decisions.hiring, runway: cash / outflow)
+        let engagement = min(1, max(0.35, 0.7 + decisions.training / 100_000 - Double(max(0, -decisions.hiring)) / 100))
+        let quality = min(1, max(0.4, 0.7 + decisions.qualityBudget / 100_000 + decisions.rndBudget / 200_000))
+        let share = min(0.75, max(0.01, current.marketShare + Double(sold) / 100_000 - (decisions.price - 98) / 10_000))
+        let metrics = Metrics(revenue: revenue, profit: profit, cash: cash, margin: margin, inventory: inventory, employees: max(0, current.employees + decisions.hiring), runway: cash / outflow, debt: max(0, current.debt + decisions.loan), quality: quality, engagement: engagement, marketShare: share)
         return PeriodSnapshot(period: period, metrics: metrics, decisions: decisions, forecast: nil, event: period == 1 ? "Demande B2B en accélération" : "Marché stable")
     }
+
+    private static func currentDebt(current: Metrics) -> Double { current.debt }
 
     static func forecast(period: Int, current: Metrics, decisions: Decisions) -> Metrics {
         simulate(period: period, current: current, decisions: decisions).metrics
