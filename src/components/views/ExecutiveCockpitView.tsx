@@ -2,6 +2,8 @@ import React from 'react';
 import { AlertTriangle, ArrowRight, Banknote, BriefcaseBusiness, CheckCircle2, Factory, Users, TrendingDown, TrendingUp } from 'lucide-react';
 import { CompanySettings, FirmDecisions, PeriodSnapshot } from '../../types/simulation';
 import { kpisFor, DecisionEvent, DecisionValidation, PeriodStatus } from '../../domain/simulationLifecycle';
+import { AdvisorPanel } from '../ui/AdvisorPanel';
+import { AdvisorRecommendation } from '../../domain/managementAdvisor';
 
 interface Props {
   snapshot: PeriodSnapshot;
@@ -13,12 +15,17 @@ interface Props {
   validation: DecisionValidation[];
   onDecisions: () => void;
   onPreview: () => void;
+  advisorRecommendations: AdvisorRecommendation[];
+  onToggleAdvisor: () => void;
+  onAdvisorNavigate: (target: AdvisorRecommendation['targetTab']) => void;
+  onDismissAdvisor: (id: string) => void;
 }
 
 const money = (value: number, currency: string) => `${Math.round(value).toLocaleString('fr-FR')} ${currency}`;
 
 export const ExecutiveCockpitView: React.FC<Props> = ({
   snapshot, previous, companySettings, pendingDecisions, periodStatus, events, validation, onDecisions, onPreview,
+  advisorRecommendations, onToggleAdvisor, onAdvisorNavigate, onDismissAdvisor,
 }) => {
   const result = snapshot.firmsResults['1'] || Object.values(snapshot.firmsResults)[0];
   const previousResult = previous?.firmsResults['1'];
@@ -57,6 +64,13 @@ export const ExecutiveCockpitView: React.FC<Props> = ({
           </button>
         </div>
       </header>
+      <AdvisorPanel
+        recommendations={advisorRecommendations}
+        open={false}
+        onToggle={onToggleAdvisor}
+        onNavigate={onAdvisorNavigate}
+        onDismiss={onDismissAdvisor}
+      />
 
       <section aria-label="Indicateurs clés" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {cards.map(({ label, value, delta: change, icon: Icon }) => (

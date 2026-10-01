@@ -38,6 +38,8 @@ import { CustomizationModal } from './components/ui/CustomizationModal';
 import { CompanyLabView } from './components/views/CompanyLabView';
 import { api, getGameCode, setGameCode, SyncState } from './api/client';
 import { CheckCircle2, TrendingUp, AlertCircle, X, Sparkles, RotateCcw, AlertTriangle } from 'lucide-react';
+import { AdvisorPanel } from './components/ui/AdvisorPanel';
+import { AdvisorRecommendation, getManagementRecommendations } from './domain/managementAdvisor';
 
 const STORAGE_KEY = 'simbiz_executive_simulation_p0_v5';
 
@@ -134,6 +136,8 @@ export default function App() {
   const [previewResult, setPreviewResult] = useState<import('./types/simulation').FirmPeriodResult | undefined>();
   const [periodStatus, setPeriodStatus] = useState<PeriodStatus>('draft');
   const [events, setEvents] = useState<DecisionEvent[]>([]);
+  const [advisorOpen, setAdvisorOpen] = useState(false);
+  const [dismissedAdvisorIds, setDismissedAdvisorIds] = useState<string[]>([]);
 
   const showToast = (title: string, message: string, type: 'success' | 'warning' | 'info' = 'info') => {
     setToast({ title, message, type });
@@ -506,6 +510,18 @@ export default function App() {
   const prevSnapshot = currentPeriod > 0 ? snapshots[currentPeriod - 1] : undefined;
   const unreadCount = messages.filter(m => !m.read).length;
   const currentCrisis = crises[latestPeriod + 1] || crises[1];
+  const advisorRecommendations = getManagementRecommendations({
+    snapshot: activeSnapshot,
+    previousSnapshot: prevSnapshot,
+    pendingDecisions,
+    periodStatus,
+    validation,
+    selectedFirmId,
+  }).filter(recommendation => !dismissedAdvisorIds.includes(recommendation.id) || recommendation.critical);
+  const handleAdvisorNavigate = (target: AdvisorRecommendation['targetTab']) => {
+    setCurrentTab(target);
+    setAdvisorOpen(false);
+  };
 
   return (
     <div className="app-shell flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
@@ -536,6 +552,11 @@ export default function App() {
           companySettings={companySettings}
           onOpenCustomization={() => setIsCustomizationOpen(true)}
           onSelectFirm={setSelectedFirmId}
+          advisorRecommendations={advisorRecommendations}
+          advisorOpen={advisorOpen}
+          onToggleAdvisor={() => setAdvisorOpen(value => !value)}
+          onAdvisorNavigate={handleAdvisorNavigate}
+          onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
         />
 
         {/* View Router */}
@@ -551,6 +572,10 @@ export default function App() {
               validation={validation}
               onDecisions={() => setCurrentTab('decisions')}
               onPreview={handlePreview}
+              advisorRecommendations={advisorRecommendations}
+              onToggleAdvisor={() => setAdvisorOpen(true)}
+              onAdvisorNavigate={handleAdvisorNavigate}
+              onDismissAdvisor={(id) => setDismissedAdvisorIds(ids => [...new Set([...ids, id])])}
             />
           )}
 

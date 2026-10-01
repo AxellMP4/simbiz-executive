@@ -3,6 +3,8 @@ import { Play, Printer, RotateCcw, TrendingUp, Sparkles, ShieldCheck, Settings, 
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { StockTicker } from '../ui/StockTicker';
 import { VolatilityModal } from '../ui/VolatilityModal';
+import { AdvisorPanel } from '../ui/AdvisorPanel';
+import { AdvisorRecommendation } from '../../domain/managementAdvisor';
 
 interface TopBarProps {
   periods: number[];
@@ -17,6 +19,11 @@ interface TopBarProps {
   companySettings?: CompanySettings;
   onOpenCustomization?: () => void;
   onSelectFirm?: (firmId: string) => void;
+  advisorRecommendations: AdvisorRecommendation[];
+  advisorOpen: boolean;
+  onToggleAdvisor: () => void;
+  onAdvisorNavigate: (target: AdvisorRecommendation['targetTab']) => void;
+  onDismissAdvisor: (id: string) => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -32,6 +39,11 @@ export const TopBar: React.FC<TopBarProps> = ({
   companySettings,
   onOpenCustomization,
   onSelectFirm,
+  advisorRecommendations,
+  advisorOpen,
+  onToggleAdvisor,
+  onAdvisorNavigate,
+  onDismissAdvisor,
 }) => {
   const [isVolatilityModalOpen, setIsVolatilityModalOpen] = useState<boolean>(false);
 
@@ -170,6 +182,14 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Zone 3: Actions */}
         <div className="flex items-center gap-2">
+          <AdvisorPanel
+            recommendations={advisorRecommendations}
+            open={advisorOpen}
+            compact
+            onToggle={onToggleAdvisor}
+            onNavigate={onAdvisorNavigate}
+            onDismiss={onDismissAdvisor}
+          />
           {/* General Market Volatility Pill if other competitors are volatile and selected firm is not already showing it */}
           {anyFirmVolatile && !isSelectedFirmVolatile && (
             <button
