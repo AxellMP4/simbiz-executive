@@ -61,6 +61,19 @@ export interface OrderValidation {
   fees: number;
 }
 
+export const quoteChangePercent = (
+  snapshot: PeriodSnapshot,
+  previousSnapshot: PeriodSnapshot | undefined,
+  firmId: string,
+): number => {
+  const quote = snapshot.marketStocks?.[firmId];
+  if (quote) return quote.changePercent;
+  if (!previousSnapshot) return 0;
+  const current = snapshot.firmsResults[firmId]?.balanceSheet.ratios.sharePrice ?? snapshot.competitorsBenchmark.find(firm => firm.firmId === firmId)?.sharePrice ?? 50;
+  const previous = previousSnapshot.firmsResults[firmId]?.balanceSheet.ratios.sharePrice ?? previousSnapshot.competitorsBenchmark.find(firm => firm.firmId === firmId)?.sharePrice ?? 50;
+  return previous > 0 ? round(((current - previous) / previous) * 100) : 0;
+};
+
 const FEE_RATE = 0.0015;
 const MIN_ORDER_QUANTITY = 1;
 const INITIAL_CASH = 25_000;
@@ -122,8 +135,14 @@ export function validateOrder(
 ): OrderValidation {
   const instrument = instruments.find((item) => item.firmId === request.firmId);
   if (!instrument) return { valid: false, message: 'Valeur inconnue pour cette période.', estimatedTotal: 0, fees: 0 };
+  if (!Number.isFinite(instrument.price) || instrument.price <= 0) {
+    return { valid: false, message: 'Cours indisponible : ordre temporairement bloqué.', estimatedTotal: 0, fees: 0 };
+  }
   if (!Number.isInteger(request.quantity) || request.quantity < MIN_ORDER_QUANTITY) {
     return { valid: false, message: 'La quantité doit être un entier supérieur ou égal à 1.', estimatedTotal: 0, fees: 0 };
+  }
+  if (!Number.isFinite(state.cash) || state.cash < 0 || state.positions.some(position => !Number.isInteger(position.quantity) || position.quantity < 0 || !Number.isFinite(position.averageCost) || position.averageCost < 0)) {
+    return { valid: false, message: 'Portefeuille incohérent : restauration ou nouvelle partie requise.', estimatedTotal: 0, fees: 0 };
   }
   const gross = round(instrument.price * request.quantity);
   const fees = round(gross * FEE_RATE);
@@ -181,9 +200,11 @@ export function executeOrder(
     total: round(request.side === 'buy' ? gross + validation.fees : gross - validation.fees),
     realizedPnl,
   };
+  const nextCash = round(state.cash + signedCash);
+  if (nextCash < 0 || !Number.isFinite(nextCash)) throw new Error('Ordre refusé : la trésorerie deviendrait incohérente.');
   return {
     ...state,
-    cash: round(state.cash + signedCash),
+    cash: nextCash,
     positions,
     transactions: [transaction, ...state.transactions].slice(0, 100),
   };

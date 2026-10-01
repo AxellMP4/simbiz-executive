@@ -153,6 +153,10 @@ export default function App() {
     return createFinancialMarketState(snapshots[0]);
   });
 
+  useEffect(() => {
+    if (latestPeriod === 0 && !companySettings.difficulty) setIsCustomizationOpen(true);
+  }, [latestPeriod, companySettings.difficulty]);
+
   const showToast = (title: string, message: string, type: 'success' | 'warning' | 'info' = 'info') => {
     setToast({ title, message, type });
     setTimeout(() => {
@@ -757,6 +761,7 @@ export default function App() {
         onClose={() => setIsCustomizationOpen(false)}
         settings={companySettings}
         onSave={handleSaveCompanySettings}
+        requiredDifficulty={latestPeriod === 0 && !companySettings.difficulty}
       />
 
       {/* Confirmation Modal for Reset */}

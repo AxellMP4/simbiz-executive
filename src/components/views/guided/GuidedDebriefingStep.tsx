@@ -17,12 +17,15 @@ import {
 } from 'lucide-react';
 import { PeriodSnapshot, CompanySettings } from '../../../types/simulation';
 import { computeExecutiveScore, PerformanceGrade } from '../../../domain/executiveScore';
+import { NeonExecutiveCharts } from '../../ui/NeonExecutiveCharts';
 
 interface GuidedDebriefingStepProps {
   snapshot: PeriodSnapshot;
   prevSnapshot?: PeriodSnapshot;
   companySettings: CompanySettings;
   selectedFirmId: string;
+  allSnapshots: Record<number, PeriodSnapshot>;
+  currentPeriod: number;
   onStartNextPeriodTour: () => void;
   onGoToResultsView: () => void;
   onGoToMarketView: () => void;
@@ -44,6 +47,8 @@ export const GuidedDebriefingStep: React.FC<GuidedDebriefingStepProps> = ({
   prevSnapshot,
   companySettings,
   selectedFirmId,
+  allSnapshots,
+  currentPeriod,
   onStartNextPeriodTour,
   onGoToResultsView,
   onGoToMarketView,
@@ -237,6 +242,15 @@ export const GuidedDebriefingStep: React.FC<GuidedDebriefingStepProps> = ({
       </div>
 
       {/* Detailed Exploration & Next Cycle Call-to-action */}
+
+      {/* Neon Executive Charts: Full Interactive Visual Analytics */}
+      <NeonExecutiveCharts
+        snapshots={allSnapshots}
+        currentPeriod={currentPeriod}
+        selectedFirmId={selectedFirmId}
+        companySettings={companySettings}
+      />
+
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <button

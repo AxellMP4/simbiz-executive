@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { TrendingUp, TrendingDown, Activity, Sparkles, Flame, Zap } from 'lucide-react';
+import { quoteChangePercent } from '../../domain/financialMarket';
 
 interface StockTickerProps {
   snapshot: PeriodSnapshot;
@@ -46,9 +47,9 @@ export const StockTicker: React.FC<StockTickerProps> = ({
       const quote = snapshot.marketStocks?.[fid];
       const currentPrice = quote?.price || firmRes?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
       // If no prevSnapshot (e.g. period 0), reference nominal IPO par value 50.00
-      const previousPrice = prevFirmRes?.balanceSheet.ratios.sharePrice || (isUser ? 50 : (comp.sharePrice ? comp.sharePrice * 0.98 : 50));
+      const previousPrice = prevFirmRes?.balanceSheet.ratios.sharePrice || 50;
 
-      const pctInterPeriod = quote?.changePercent ?? (previousPrice > 0 ? ((currentPrice - previousPrice) / previousPrice) * 100 : 0);
+      const pctInterPeriod = quoteChangePercent(snapshot, prevSnapshot, fid);
       const isHighVolatility = Math.abs(pctInterPeriod) >= 15.0;
 
       let symbol = `F${fid}`;

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createFinancialMarketState, executeOrder, instrumentsFromSnapshot, validateOrder } from './financialMarket';
+import { createFinancialMarketState, executeOrder, instrumentsFromSnapshot, validateOrder, portfolioValue, quoteChangePercent } from './financialMarket';
+import { getHistoricalSnapshots } from '../data/initialData';
 import { PeriodSnapshot } from '../types/simulation';
 
 const snapshot = {
@@ -32,4 +33,37 @@ test('order validation rejects insufficient cash and inventory', () => {
   const state = createFinancialMarketState(snapshot);
   assert.equal(validateOrder(state, instruments, { side: 'buy', firmId: '1', quantity: 1000 }).valid, false);
   assert.equal(validateOrder(state, instruments, { side: 'sell', firmId: '1', quantity: 1 }).valid, false);
+});
+
+test('portfolio value and cash reconcile after a complete round trip', () => {
+  const instruments = instrumentsFromSnapshot(snapshot);
+  const initial = createFinancialMarketState(snapshot);
+  const bought = executeOrder(initial, instruments, { side: 'buy', firmId: '1', quantity: 10 }, 1);
+  const sold = executeOrder(bought, instruments, { side: 'sell', firmId: '1', quantity: 10 }, 1);
+  assert.equal(sold.positions.length, 0);
+  assert.equal(portfolioValue(sold, instruments), 0);
+  assert.equal(sold.cash, 24997);
+  assert.equal(sold.transactions.length, 2);
+});
+
+test('invalid portfolio state is rejected before execution', () => {
+  const instruments = instrumentsFromSnapshot(snapshot);
+  const state = { ...createFinancialMarketState(snapshot), cash: -1 };
+  assert.equal(validateOrder(state, instruments, { side: 'buy', firmId: '1', quantity: 1 }).valid, false);
+});
+
+test('the initial market gives every firm the same nominal level', () => {
+  const initial = getHistoricalSnapshots()[0];
+  const prices = initial.competitorsBenchmark.map(firm => firm.sharePrice);
+  assert.deepEqual(prices, [50, 50, 50, 50, 50, 50]);
+  assert.deepEqual(Object.values(initial.marketStocks || {}).map(quote => quote.price), [50, 50, 50, 50, 50, 50]);
+});
+
+test('ticker and volatility use the same quote change', () => {
+  const initial = getHistoricalSnapshots()[0];
+  const next = { ...initial, period: 1, marketStocks: {
+    ...initial.marketStocks,
+    '1': { ...initial.marketStocks!['1'], price: 40, previousClose: 50, change: -10, changePercent: -20 },
+  } };
+  assert.equal(quoteChangePercent(next, initial, '1'), -20);
 });

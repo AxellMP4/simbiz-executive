@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import {
   CompanySettings,
   IndustrySector,
-  CeoPersona
+  CeoPersona,
+  DifficultyLevel
 } from '../../types/simulation';
+import { DIFFICULTY_PROFILES } from '../../domain/difficulty';
 import {
   INDUSTRY_SECTORS,
   CEO_PERSONAS,
@@ -30,6 +32,7 @@ interface CustomizationModalProps {
   onClose: () => void;
   settings: CompanySettings;
   onSave: (newSettings: CompanySettings) => void;
+  requiredDifficulty?: boolean;
 }
 
 const BRAND_COLORS = [
@@ -46,6 +49,7 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
   onClose,
   settings,
   onSave,
+  requiredDifficulty = false,
 }) => {
   const [formData, setFormData] = useState<CompanySettings>(settings);
   const [activeTab, setActiveTab] = useState<'identity' | 'sector' | 'ceo' | 'branding'>('identity');
@@ -108,7 +112,9 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            disabled={requiredDifficulty && !formData.difficulty}
+            aria-label={requiredDifficulty && !formData.difficulty ? 'Choisissez une difficulté pour continuer' : 'Fermer'}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
           >
             <X className="w-5 h-5" />
           </button>
@@ -167,6 +173,33 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
           {/* TAB 1: IDENTITY & PRODUCTS */}
           {activeTab === 'identity' && (
             <div className="space-y-4">
+              <div className="rounded-xl border border-indigo-500/40 bg-indigo-950/25 p-4">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-white">🎚️ Niveau de difficulté</p>
+                    <p className="mt-1 text-xs text-slate-400">Obligatoire avant la Période 1 · influence la concurrence, la volatilité et les événements.</p>
+                  </div>
+                  <span className="rounded-full bg-amber-400/15 px-2 py-1 text-[10px] font-bold text-amber-300">REQUIS</span>
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {(Object.keys(DIFFICULTY_PROFILES) as DifficultyLevel[]).map(level => {
+                    const profile = DIFFICULTY_PROFILES[level];
+                    const selected = formData.difficulty === level;
+                    return (
+                      <button
+                        type="button"
+                        key={level}
+                        onClick={() => setFormData(prev => ({ ...prev, difficulty: level }))}
+                        className={`rounded-lg border p-3 text-left transition-colors ${selected ? 'border-indigo-400 bg-indigo-500/20' : 'border-slate-700 bg-slate-950/60 hover:border-slate-500'}`}
+                        aria-pressed={selected}
+                      >
+                        <span className="block text-xs font-bold text-white">{profile.label}</span>
+                        <span className="mt-1 block text-[11px] leading-relaxed text-slate-400">{profile.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-slate-300 mb-1">

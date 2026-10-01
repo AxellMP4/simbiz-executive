@@ -1,5 +1,6 @@
 import React from 'react';
 import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
+import { quoteChangePercent } from '../../domain/financialMarket';
 import {
   Flame,
   Zap,
@@ -62,14 +63,10 @@ export const VolatilityModal: React.FC<VolatilityModalProps> = ({
     const fid = comp.firmId;
     const isUser = fid === '1';
     const firmRes = snapshot.firmsResults[fid];
-    const prevFirmRes = prevSnapshot?.firmsResults[fid];
-
-    const currentPrice = firmRes?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
-    // If no prevSnapshot (e.g. period 0), reference nominal IPO par value 50.00
-    const prevPrice = prevFirmRes?.balanceSheet.ratios.sharePrice || (isUser ? 50.0 : (comp.sharePrice ? comp.sharePrice * 0.98 : 50.0));
-
-    const diff = currentPrice - prevPrice;
-    const pctChange = prevPrice > 0 ? (diff / prevPrice) * 100 : 0;
+    const currentPrice = snapshot.marketStocks?.[fid]?.price || firmRes?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
+    const pctChange = quoteChangePercent(snapshot, prevSnapshot, fid);
+    const previousPrice = snapshot.marketStocks?.[fid]?.previousClose || 50;
+    const diff = currentPrice - previousPrice;
     const isVolatile = Math.abs(pctChange) >= 15.0;
 
     let symbol = `F${fid}`;
@@ -123,7 +120,7 @@ export const VolatilityModal: React.FC<VolatilityModalProps> = ({
       name,
       symbol,
       currentPrice,
-      prevPrice,
+      prevPrice: previousPrice,
       diff,
       pctChange,
       isVolatile,

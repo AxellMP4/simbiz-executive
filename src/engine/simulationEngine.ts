@@ -8,6 +8,7 @@ import {
   CompanySettings
 } from '../types/simulation';
 import { evolveMarketStocks } from '../domain/marketEvolution';
+import { DIFFICULTY_PROFILES, effectiveDifficulty } from '../domain/difficulty';
 
 // Helper for rounding to 2 decimals
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -23,7 +24,16 @@ const seededRandom = (seed: number) => {
 /**
  * Generate AI Decisions for other 5 competitor firms (F1-F6)
  */
-export function generateAIDecisions(firmId: string, period: number, prevResult?: FirmPeriodResult): FirmDecisions {
+export function generateAIDecisions(
+  firmId: string,
+  period: number,
+  prevResult?: FirmPeriodResult,
+  difficulty: CompanySettings['difficulty'] = 'normal',
+): FirmDecisions {
+  const profile = DIFFICULTY_PROFILES[effectiveDifficulty(difficulty)];
+  const firmNumber = Number.parseInt(firmId, 10) || 1;
+  const drift = seededRandom((period * 104729 + firmNumber * 7919) >>> 0);
+  const reaction = (drift() - 0.5) * 0.04 * profile.competitorSkill;
   const base: FirmDecisions = prevResult?.decisions || {
     period,
     firmId,
@@ -77,18 +87,84 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
     forecastDisbursements: 1350000,
   };
 
+  const evolve = (decision: FirmDecisions): FirmDecisions => ({
+    ...decision,
+    period,
+    priceA_local: r2(Math.max(70, decision.priceA_local * (1 + reaction))),
+    priceB_local: r2(Math.max(130, decision.priceB_local * (1 + reaction))),
+    priceA_export: r2(Math.max(70, decision.priceA_export * (1 + reaction))),
+    priceB_export: r2(Math.max(130, decision.priceB_export * (1 + reaction))),
+    adSpend_local: r0(decision.adSpend_local * profile.competitorAggression),
+    adSpend_export: r0(decision.adSpend_export * profile.competitorAggression),
+    productionA: r0(decision.productionA * (1 + reaction * 0.7)),
+    productionB: r0(decision.productionB * (1 + reaction * 0.7)),
+    rawMaterialOrder: r0(decision.rawMaterialOrder * (1 + reaction * 0.7)),
+  });
+
+  // Once a firm has played a period, it continues from its own choices.
+  // The strategy-specific bias is deliberately different per firm so the
+  // benchmark develops distinct trajectories instead of replaying one template.
+  if (prevResult) {
+    const previous = prevResult.decisions;
+    const strategicStep = (value: number, rate: number, min = 0) => r0(Math.max(min, value * (1 + rate)));
+    const autonomous = {
+      '2': {
+        price: -0.012, volume: 0.045, marketing: 0.025,
+        productionA: 1.06, productionB: 0.98, training: 0.99,
+      },
+      '3': {
+        price: 0.018, volume: 0.012, marketing: 0.018,
+        productionA: 0.97, productionB: 1.065, training: 1.04,
+      },
+      '4': {
+        price: -0.004, volume: 0.028, marketing: 0.012,
+        productionA: 1.01, productionB: 1.02, training: 1.015,
+      },
+      '5': {
+        price: 0.009, volume: 0.018, marketing: 0.01,
+        productionA: 1.0, productionB: 1.03, training: 1.05,
+      },
+      '6': {
+        price: -0.006, volume: 0.04, marketing: 0.008,
+        productionA: 1.075, productionB: 1.015, training: 1.02,
+      },
+    }[firmId] || {
+      price: 0, volume: 0.02, marketing: 0, productionA: 1, productionB: 1, training: 1,
+    };
+    const noise = reaction * 0.35;
+    return evolve({
+      ...previous,
+      period,
+      priceA_local: Math.max(70, previous.priceA_local * (1 + autonomous.price + noise)),
+      priceB_local: Math.max(130, previous.priceB_local * (1 + autonomous.price + noise)),
+      priceA_export: Math.max(70, previous.priceA_export * (1 + autonomous.price + noise)),
+      priceB_export: Math.max(130, previous.priceB_export * (1 + autonomous.price + noise)),
+      productionA: previous.productionA * autonomous.productionA,
+      productionB: previous.productionB * autonomous.productionB,
+      rawMaterialOrder: previous.rawMaterialOrder * (1 + autonomous.volume + noise),
+      adSpend_local: strategicStep(previous.adSpend_local, autonomous.marketing),
+      adSpend_export: strategicStep(previous.adSpend_export, autonomous.marketing * 0.85),
+      trainingBudget: strategicStep(previous.trainingBudget, autonomous.training - 1),
+      rdBudget: strategicStep(previous.rdBudget, autonomous.training - 1),
+      automationBudget: firmId === '6' ? strategicStep(previous.automationBudget || 0, 0.08) : previous.automationBudget,
+      ecoDesignBudget: firmId === '5' ? strategicStep(previous.ecoDesignBudget || 0, 0.1) : previous.ecoDesignBudget,
+      sellersCount_local: Math.max(2, Math.round(previous.sellersCount_local + (firmId === '4' ? 1 : 0))),
+      sellersCount_export: Math.max(1, Math.round(previous.sellersCount_export + (firmId === '4' ? 1 : 0))),
+    });
+  }
+
   switch (firmId) {
     case '1': // User firm template if AI runs it
-      return {
+      return evolve({
         ...base,
         period,
         productionA: 3700,
         productionB: 1000,
         rawMaterialOrder: 19000,
         rdBudget: 22000,
-      };
+      });
     case '2': // VoltaCore (Low Cost / Volume)
-      return {
+      return evolve({
         ...base,
         period,
         marketingEffortB: 0.25,
@@ -109,9 +185,9 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
         ecoDesignBudget: 4000,
         profitSharingRate: 2,
         clientPaymentTerms: 60, // Offers 60 days to gain volume
-      };
+      });
     case '3': // Zenith Avionics (Premium / High margin Produit B)
-      return {
+      return evolve({
         ...base,
         period,
         marketingEffortB: 0.70,
@@ -134,9 +210,9 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
         ecoDesignBudget: 14000,
         profitSharingRate: 8,
         clientPaymentTerms: 30,
-      };
+      });
     case '4': // Atlas Global Trade (Export Specialist)
-      return {
+      return evolve({
         ...base,
         period,
         marketingEffortB: 0.45,
@@ -155,9 +231,9 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
         qvtBudget: 8000,
         rdBudget: 18000,
         clientPaymentTerms: 60,
-      };
+      });
     case '5': // Helios GreenTech (RSE / Eco-conception)
-      return {
+      return evolve({
         ...base,
         period,
         marketingEffortB: 0.55,
@@ -178,9 +254,9 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
         ecoDesignBudget: 22000,
         profitSharingRate: 10,
         preventiveMaintenanceBudget: 10000,
-      };
+      });
     case '6': // Titan Precision Robotics (Robotique & Machines)
-      return {
+      return evolve({
         ...base,
         period,
         marketingEffortB: 0.35,
@@ -199,9 +275,9 @@ export function generateAIDecisions(firmId: string, period: number, prevResult?:
         automationBudget: 25000,
         preventiveMaintenanceBudget: 11000,
         profitSharingRate: 4,
-      };
+      });
     default:
-      return { ...base, period };
+      return evolve({ ...base, period });
   }
 }
 
@@ -214,14 +290,16 @@ export function simulateNextPeriod(
   companySettings?: CompanySettings
 ): { nextSnapshot: PeriodSnapshot; newMessages: SystemMessage[] } {
   const nextPeriod = currentSnapshot.period + 1;
+  const difficulty = effectiveDifficulty(companySettings?.difficulty);
+  const profile = DIFFICULTY_PROFILES[difficulty];
   const prevEnv = currentSnapshot.marketEnvironment;
   const random = seededRandom(
     ((currentSnapshot.period + 1) * 2654435761 + Number.parseInt(userDecisions.firmId || '1', 10) * 97) >>> 0
   );
 
   // Macro dynamics: Organic growth + macro fluctuations
-  const growthA = 1 + 0.03 + (random() * 0.04 - 0.02);
-  const growthB = 1 + 0.05 + (random() * 0.05 - 0.02);
+  const growthA = 1 + 0.03 + (random() * 0.04 - 0.02) * profile.marketVolatility;
+  const growthB = 1 + 0.05 + (random() * 0.05 - 0.02) * profile.marketVolatility;
 
   const newInterestRate = r2(Math.max(3.2, Math.min(6.5, prevEnv.annualInterestRate + (random() * 0.4 - 0.2))));
   const newInflation = r2(Math.max(1.2, Math.min(4.5, prevEnv.inflationRate + (random() * 0.3 - 0.15))));
@@ -234,14 +312,15 @@ export function simulateNextPeriod(
     { title: 'Grand Salon International de l\'Aéronautique & Tech', impact: 'Visibilité record pour les calculateurs embarqués Apex. Explosion des opportunités B2B.', bonusA: 1.02, bonusB: 1.12 },
     { title: 'Stabilité Macro-économique & Confiance Consommateurs', impact: 'Consommation soutenue sur le marché national, conditions de crédit favorables.', bonusA: 1.04, bonusB: 1.04 },
   ];
-  const currentEvent = events[(nextPeriod - 1) % events.length];
+  const currentEvent = events[(nextPeriod - 1 + (difficulty === 'expert' ? 1 : 0)) % events.length];
 
-  const overallMarketDemandA = r0(prevEnv.overallMarketDemandA * growthA * currentEvent.bonusA);
-  const overallMarketDemandB = r0(prevEnv.overallMarketDemandB * growthB * currentEvent.bonusB);
-  const overallExportDemandA = r0(prevEnv.overallExportDemandA * growthA * currentEvent.bonusA);
-  const overallExportDemandB = r0(prevEnv.overallExportDemandB * growthB * currentEvent.bonusB);
+  const eventScale = (value: number) => 1 + (value - 1) * profile.eventImpact;
+  const overallMarketDemandA = r0(prevEnv.overallMarketDemandA * growthA * eventScale(currentEvent.bonusA));
+  const overallMarketDemandB = r0(prevEnv.overallMarketDemandB * growthB * eventScale(currentEvent.bonusB));
+  const overallExportDemandA = r0(prevEnv.overallExportDemandA * growthA * eventScale(currentEvent.bonusA));
+  const overallExportDemandB = r0(prevEnv.overallExportDemandB * growthB * eventScale(currentEvent.bonusB));
 
-  const rawSpot = r2(18.50 * (1 + (random() * 0.12 - 0.04)));
+  const rawSpot = r2(18.50 * (1 + (random() * 0.12 - 0.04) * profile.marketVolatility));
   const rawContract = 14.80;
 
   const newEnv: MarketEnvironment = {
@@ -270,7 +349,7 @@ export function simulateNextPeriod(
       allDecisions[fid] = { ...userDecisions, period: nextPeriod };
     } else {
       const prevRes = currentSnapshot.firmsResults[fid];
-      allDecisions[fid] = generateAIDecisions(fid, nextPeriod, prevRes);
+      allDecisions[fid] = generateAIDecisions(fid, nextPeriod, prevRes, difficulty);
     }
   }
 

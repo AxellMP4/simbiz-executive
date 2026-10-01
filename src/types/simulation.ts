@@ -371,6 +371,8 @@ export type IndustrySector =
   | 'education_learning'
   | 'climate_circular';
 
+export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'expert';
+
 export interface SectorEconomics {
   demandVolatility: number;
   capitalIntensity: number;
@@ -410,6 +412,8 @@ export interface CompanySettings {
   orgStructure?: 'functional' | 'divisional' | 'matrix' | 'holacratic';
   supplierPreference?: 'local' | 'balanced' | 'global';
   productPortfolio?: Array<{ name: string; category: string; pricePosition: 'value' | 'premium' }>;
+  /** Selected before P1. Optional only to keep older exported saves readable. */
+  difficulty?: DifficultyLevel;
 }
 
 export interface StrategicObjective {

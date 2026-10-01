@@ -408,6 +408,28 @@ export const INITIAL_SNAPSHOTS: Record<number, PeriodSnapshot> = {
       },
     };
   }
+
+  // All firms start from the same nominal IPO level. Competitive differences
+  // emerge from decisions and the deterministic market engine after P0.
+  p0.competitorsBenchmark.forEach(benchmark => {
+    benchmark.sharePrice = 50;
+    const firm = p0.firmsResults[benchmark.firmId];
+    if (firm) firm.balanceSheet.ratios.sharePrice = 50;
+  });
+  p0.marketStocks = Object.fromEntries(p0.competitorsBenchmark.map(benchmark => [
+    benchmark.firmId,
+    {
+      firmId: benchmark.firmId,
+      symbol: benchmark.firmId === '1' ? 'APULSE' : `F${benchmark.firmId}`,
+      price: 50,
+      previousClose: 50,
+      change: 0,
+      changePercent: 0,
+      volume: 0,
+      history: [50],
+      driver: 'Niveau initial commun',
+    },
+  ]));
 })();
 
 export const getHistoricalSnapshots = (): Record<number, PeriodSnapshot> => {

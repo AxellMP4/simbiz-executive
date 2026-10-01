@@ -1,4 +1,5 @@
 import { CompetitorMarketData, MarketEnvironment, MarketStock, FirmPeriodResult, CompanySettings } from '../types/simulation';
+import { DIFFICULTY_PROFILES, effectiveDifficulty } from './difficulty';
 
 const hash = (value: string) => {
   let result = 2166136261;
@@ -46,7 +47,8 @@ export function evolveMarketStocks(
     const marketPulse = ((environment.overallMarketDemandA + environment.overallMarketDemandB) / 28500 - 1) * 0.45;
     const sectorPulse = settings?.sectorEconomics?.demandGrowth ?? 0.03;
     const rng = random(hash(`${period}:${firm.firmId}:${environment.specialEventTitle ?? ''}`));
-    const shock = (rng() - 0.5) * (0.025 + (settings?.sectorEconomics?.demandVolatility ?? 0.12) * 0.08);
+    const difficulty = DIFFICULTY_PROFILES[effectiveDifficulty(settings?.difficulty)];
+    const shock = (rng() - 0.5) * (0.025 + (settings?.sectorEconomics?.demandVolatility ?? 0.12) * 0.08) * difficulty.marketVolatility;
     const changePercent = Math.max(-0.22, Math.min(0.22, fundamentals + marketPulse + sectorPulse + shock));
     const price = round(Math.max(12, previousClose * (1 + changePercent)));
     const history = [...(previousStock?.history ?? [previousClose]), price].slice(-12);

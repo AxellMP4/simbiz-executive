@@ -21,6 +21,8 @@ Le produit existant contient déjà des vues et libellés en français, un moteu
 - Vues existantes pour états financiers, résultats de production, trésorerie, benchmark marché, RH, marché, conseil/R&D, messagerie, outils et documentation.
 - Prévisualisation des décisions sans mutation du résultat officiel, validation de contraintes, clôture idempotente et journal d'activité.
 - Sauvegarde locale `localStorage`, export/restauration JSON de l'état complet et synchronisation via une API Express locale ou un adaptateur Netlify Functions.
+- Choix obligatoire de difficulté avant la Période 1 (facile, normal, difficile, expert), appliqué de façon déterministe aux profils concurrents, à la volatilité, aux événements et aux cours du marché.
+- Marché financier jouable avec ordres au comptant, frais, portefeuille, liquidités, P&L réalisé/latent, watchlist, historique et validations anti-incohérence.
 
 ## Persistance et limites vérifiées
 

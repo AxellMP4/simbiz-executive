@@ -4,6 +4,7 @@ import { PeriodSnapshot, CompanySettings } from '../../types/simulation';
 import { StockTicker } from '../ui/StockTicker';
 import { VolatilityModal } from '../ui/VolatilityModal';
 import { AdvisorRecommendation } from '../../domain/managementAdvisor';
+import { quoteChangePercent } from '../../domain/financialMarket';
 
 interface TopBarProps {
   periods: number[];
@@ -78,17 +79,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   const currency = companySettings?.currency || '€';
 
   // Calculate selected firm price change between periods
-  const priceDiff = sharePrice - prevSharePrice;
-  const pctChange = prevSharePrice > 0 ? (priceDiff / prevSharePrice) * 100 : 0;
+  const pctChange = quoteChangePercent(snapshot, prevSnapshot, selectedFirmId);
   const isSelectedFirmVolatile = Math.abs(pctChange) >= 15.0;
 
   // Check if ANY firm in the benchmark is volatile
   const anyFirmVolatile = (snapshot.competitorsBenchmark || []).some(comp => {
     const fid = comp.firmId;
-    const cur = snapshot.firmsResults[fid]?.balanceSheet.ratios.sharePrice || comp.sharePrice || 50;
-    const prev = prevSnapshot?.firmsResults[fid]?.balanceSheet.ratios.sharePrice || (fid === '1' ? 50 : (comp.sharePrice ? comp.sharePrice * 0.98 : 50));
-    const deltaPct = prev > 0 ? Math.abs((cur - prev) / prev) * 100 : 0;
-    return deltaPct >= 15.0;
+    return Math.abs(quoteChangePercent(snapshot, prevSnapshot, fid)) >= 15.0;
   });
 
   const handlePrint = () => {
